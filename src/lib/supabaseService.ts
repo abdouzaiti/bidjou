@@ -4,20 +4,26 @@ import { Member, Coach, Session, Payment, Attendance, Expense, AppNotification, 
 export const supabaseService = {
   // Members
   async getMembers(): Promise<Member[]> {
-    const { data, error } = await supabase
-      .from('members')
-      .select('*')
-      .order('name');
-    
-    if (error) {
-      if (error.code === '42P01') {
-        console.warn('La table "members" n\'existe pas encore dans Supabase. Exécutez le script SQL.');
-        return [];
+    try {
+      const { data, error } = await supabase
+        .from('members')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        if (error.code === '42P01') {
+          console.warn('La table "members" n\'existe pas encore.');
+          return [];
+        }
+        console.error("Supabase Error (getMembers):", error);
+        throw error;
       }
-      throw error;
+      
+      return (data || []).map(m => this.mapMember(m));
+    } catch (e) {
+      console.error("Critical Failure in getMembers:", e);
+      return [];
     }
-    
-    return (data || []).map(m => this.mapMember(m));
   },
 
   mapMember(m: any): Member {
@@ -165,17 +171,30 @@ export const supabaseService = {
 
   // Sessions
   async getSessions(): Promise<Session[]> {
-    const { data, error } = await supabase
-      .from('sessions')
-      .select('*')
-      .order('date', { ascending: false });
+    try {
+      // Try ordering by date first
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .order('date', { ascending: false });
 
-    if (error) {
-      if (error.code === '42P01') return [];
-      throw error;
+      if (error) {
+        // If 'date' column doesn't exist, try without ordering
+        if (error.code === '42703') { 
+          console.warn('Column "date" missing in sessions. Falling back to unordered fetch.');
+          const { data: data2, error: error2 } = await supabase.from('sessions').select('*');
+          if (error2) throw error2;
+          return (data2 || []).map(s => this.mapSession(s));
+        }
+        if (error.code === '42P01') return [];
+        throw error;
+      }
+
+      return (data || []).map(s => this.mapSession(s));
+    } catch (e) {
+      console.error("Failed to load sessions:", e);
+      return [];
     }
-
-    return (data || []).map(s => this.mapSession(s));
   },
 
   mapSession(s: any): Session {

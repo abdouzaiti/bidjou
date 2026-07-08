@@ -316,6 +316,23 @@ export default function SettingsView({
                   <p className="text-[9px] italic">Une fois ajoutées, l'application se synchronisera automatiquement.</p>
                 </div>
               )}
+
+              {isSupabaseConfigured && !isSupabaseOnline && (
+                <div className="mt-2 p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-2">
+                  <p className="font-bold text-[10px] uppercase text-rose-800">Migration de Base de Données :</p>
+                  <p className="text-[9px] text-rose-700 leading-relaxed">
+                    Si vous voyez des erreurs comme "column does not exist", copiez le contenu du fichier <strong>supabase_schema.sql</strong> et exécutez-le dans le <strong>SQL Editor</strong> de votre tableau de bord Supabase.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      window.open('https://supabase.com/dashboard/project/_/sql', '_blank');
+                    }}
+                    className="w-full py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-bold hover:bg-rose-700 transition-colors"
+                  >
+                    Ouvrir SQL Editor Supabase
+                  </button>
+                </div>
+              )}
             </div>
 
             <p className="text-slate-500 leading-relaxed pt-2">

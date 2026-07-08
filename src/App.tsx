@@ -182,7 +182,7 @@ export default function App() {
   const handleAddMember = async (newMember: Omit<Member, 'id' | 'membershipNumber'>) => {
     const membershipNumber = `BJO-2026-${String(members.length + 1).padStart(3, '0')}`;
     
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && isSupabaseOnline) {
       try {
         const fresh = await supabaseService.addMember({ ...newMember, membershipNumber });
         setMembers([fresh, ...members]);
@@ -190,7 +190,9 @@ export default function App() {
       } catch (error: any) {
         console.error("Error adding member to Supabase:", error);
         triggerNotification('Erreur Sync', `Impossible d'ajouter à Supabase: ${error.message || 'Erreur inconnue'}`, 'Alert');
-        // Fallback local optionnel si vous voulez autoriser l'usage sans réseau
+        // Fallback local en cas d'erreur ponctuelle
+        const fresh: Member = { ...newMember, id: `member-${Date.now()}`, membershipNumber };
+        setMembers([fresh, ...members]);
       }
     } else {
       const fresh: Member = {
@@ -201,6 +203,9 @@ export default function App() {
       const updated = [fresh, ...members];
       setMembers(updated);
       saveMembers(updated);
+      if (isSupabaseConfigured && !isSupabaseOnline) {
+        triggerNotification('Mode Local', 'Données enregistrées localement (Mode hors-ligne).', 'Alert');
+      }
     }
 
     triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès.`, 'Announcement');
