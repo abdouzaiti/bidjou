@@ -498,16 +498,16 @@ export default function App() {
 
   // Nav item list configuration helper
   const navigationItems = [
-    { id: 'dashboard', label: t('nav_dashboard'), icon: Home },
-    { id: 'members', label: t('nav_members'), icon: Users },
-    { id: 'attendance', label: t('nav_attendance'), icon: Clock, indicator: false },
-    { id: 'payments', label: t('nav_payments'), icon: CreditCard },
-    { id: 'sessions', label: t('nav_sessions'), icon: Calendar },
-    { id: 'coaches', label: t('nav_coaches'), icon: Award },
-    { id: 'expenses', label: t('nav_expenses'), icon: TrendingDown },
-    { id: 'reports', label: t('nav_reports'), icon: BarChart3 },
-    { id: 'notifications', label: t('nav_notifications'), icon: Bell, badge: unreadCount > 0 ? unreadCount : undefined },
-    { id: 'settings', label: t('nav_settings'), icon: Settings }
+    { id: 'dashboard', label: t('dashboard'), icon: Home },
+    { id: 'members', label: t('members'), icon: Users },
+    { id: 'attendance', label: t('attendance'), icon: Clock, indicator: false },
+    { id: 'payments', label: t('payments'), icon: CreditCard },
+    { id: 'sessions', label: t('sessions'), icon: Calendar },
+    { id: 'coaches', label: t('coaches'), icon: Award },
+    { id: 'expenses', label: t('expenses'), icon: TrendingDown },
+    { id: 'reports', label: t('reports'), icon: BarChart3 },
+    { id: 'notifications', label: t('notifications'), icon: Bell, badge: unreadCount > 0 ? unreadCount : undefined },
+    { id: 'settings', label: t('settings'), icon: Settings }
   ];
 
   return (
