@@ -9,10 +9,19 @@ export const supabaseService = {
       .select('*')
       .order('name');
     
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') {
+        console.warn('La table "members" n\'existe pas encore dans Supabase. Exécutez le script SQL.');
+        return [];
+      }
+      throw error;
+    }
     
-    // Map DB snake_case to camelCase
-    return (data || []).map(m => ({
+    return (data || []).map(m => this.mapMember(m));
+  },
+
+  mapMember(m: any): Member {
+    return {
       id: m.id,
       membershipNumber: m.membership_number,
       name: m.name,
@@ -31,7 +40,7 @@ export const supabaseService = {
       emergencyInfo: m.emergency_info,
       jetonId: m.jeton_id,
       bloodType: m.blood_type
-    }));
+    };
   },
 
   async addMember(member: Omit<Member, 'id'>): Promise<Member> {
@@ -60,14 +69,14 @@ export const supabaseService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this.mapMember(data);
   },
 
   async updateMember(id: string, member: Partial<Member>): Promise<void> {
     const updateData: any = {};
     if (member.membershipNumber) updateData.membership_number = member.membershipNumber;
     if (member.name) updateData.name = member.name;
-    if (member.photoUrl) updateData.photo_url = member.photoUrl;
+    if (member.photoUrl !== undefined) updateData.photo_url = member.photoUrl;
     if (member.gender) updateData.gender = member.gender;
     if (member.birthDate) updateData.birth_date = member.birthDate;
     if (member.phone) updateData.phone = member.phone;
@@ -77,10 +86,10 @@ export const supabaseService = {
     if (member.joinDate) updateData.join_date = member.joinDate;
     if (member.status) updateData.status = member.status;
     if (member.monthlyFee !== undefined) updateData.monthly_fee = member.monthlyFee;
-    if (member.notes) updateData.notes = member.notes;
-    if (member.medicalNotes) updateData.medical_notes = member.medicalNotes;
-    if (member.emergencyInfo) updateData.emergency_info = member.emergencyInfo;
-    if (member.jetonId) updateData.jeton_id = member.jetonId;
+    if (member.notes !== undefined) updateData.notes = member.notes;
+    if (member.medicalNotes !== undefined) updateData.medical_notes = member.medicalNotes;
+    if (member.emergencyInfo !== undefined) updateData.emergency_info = member.emergencyInfo;
+    if (member.jetonId !== undefined) updateData.jeton_id = member.jetonId;
     if (member.bloodType) updateData.blood_type = member.bloodType;
 
     const { error } = await supabase
@@ -107,9 +116,16 @@ export const supabaseService = {
       .select('*')
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') return [];
+      throw error;
+    }
 
-    return (data || []).map(p => ({
+    return (data || []).map(p => this.mapPayment(p));
+  },
+
+  mapPayment(p: any): Payment {
+    return {
       id: p.id,
       memberId: p.member_id,
       amount: p.amount,
@@ -120,7 +136,7 @@ export const supabaseService = {
       reference: p.reference,
       notes: p.notes,
       receiptNumber: p.receipt_number
-    }));
+    };
   },
 
   async addPayment(payment: Omit<Payment, 'id'>): Promise<Payment> {
@@ -141,7 +157,7 @@ export const supabaseService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this.mapPayment(data);
   },
 
   // Sessions
@@ -151,9 +167,16 @@ export const supabaseService = {
       .select('*')
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') return [];
+      throw error;
+    }
 
-    return (data || []).map(s => ({
+    return (data || []).map(s => this.mapSession(s));
+  },
+
+  mapSession(s: any): Session {
+    return {
       id: s.id,
       title: s.title,
       coachId: s.coach_id,
@@ -162,7 +185,7 @@ export const supabaseService = {
       time: s.time,
       description: s.description,
       capacity: s.capacity
-    }));
+    };
   },
 
   async addSession(session: Omit<Session, 'id'>): Promise<Session> {
@@ -181,7 +204,7 @@ export const supabaseService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this.mapSession(data);
   },
 
   async deleteSession(id: string): Promise<void> {
@@ -199,19 +222,48 @@ export const supabaseService = {
       .from('coaches')
       .select('*');
 
-    if (error) throw error;
-    return data || [];
+    if (error) {
+      if (error.code === '42P01') return [];
+      throw error;
+    }
+    return (data || []).map(c => ({
+      id: c.id,
+      name: c.name,
+      photoUrl: c.photo_url,
+      phone: c.phone,
+      email: c.email,
+      specialty: c.specialty,
+      experience: c.experience,
+      status: c.status
+    }));
   },
 
   async addCoach(coach: Omit<Coach, 'id'>): Promise<Coach> {
     const { data, error } = await supabase
       .from('coaches')
-      .insert([coach])
+      .insert([{
+        name: coach.name,
+        photo_url: coach.photoUrl,
+        phone: coach.phone,
+        email: coach.email,
+        specialty: coach.specialty,
+        experience: coach.experience,
+        status: coach.status
+      }])
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      photoUrl: data.photo_url,
+      phone: data.phone,
+      email: data.email,
+      specialty: data.specialty,
+      experience: data.experience,
+      status: data.status
+    };
   },
 
   async deleteCoach(id: string): Promise<void> {
@@ -230,7 +282,10 @@ export const supabaseService = {
       .select('*')
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') return [];
+      throw error;
+    }
     return data || [];
   },
 
@@ -263,7 +318,7 @@ export const supabaseService = {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') return null; // No rows found
+      if (error.code === 'PGRST116' || error.code === '42P01') return null;
       throw error;
     }
 
@@ -285,7 +340,7 @@ export const supabaseService = {
   async updateSettings(settings: Partial<ClubSettings>): Promise<void> {
     const updateData: any = {};
     if (settings.clubName) updateData.club_name = settings.clubName;
-    if (settings.clubLogo) updateData.club_logo = settings.clubLogo;
+    if (settings.clubLogo !== undefined) updateData.club_logo = settings.clubLogo;
     if (settings.defaultMonthlyFee !== undefined) updateData.default_monthly_fee = settings.defaultMonthlyFee;
     if (settings.currency) updateData.currency = settings.currency;
     if (settings.language) updateData.language = settings.language;
@@ -310,9 +365,16 @@ export const supabaseService = {
       .select('*')
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') return [];
+      throw error;
+    }
 
-    return (data || []).map(a => ({
+    return (data || []).map(a => this.mapAttendance(a));
+  },
+
+  mapAttendance(a: any): Attendance {
+    return {
       id: a.id,
       memberId: a.member_id,
       date: a.date,
@@ -320,7 +382,7 @@ export const supabaseService = {
       sessionId: a.session_id,
       coachId: a.coach_id,
       status: a.status
-    }));
+    };
   },
 
   async recordAttendance(attendance: Omit<Attendance, 'id'>): Promise<Attendance> {
@@ -338,7 +400,7 @@ export const supabaseService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this.mapAttendance(data);
   },
 
   async clearTodayAttendance(date: string): Promise<void> {

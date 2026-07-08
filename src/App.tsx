@@ -109,14 +109,16 @@ export default function App() {
       setIsLoadingData(true);
       if (isSupabaseConfigured) {
         try {
-          const [m, p, s, c, e, n, sett, att] = await Promise.all([
+          // Verify connection by fetching settings first
+          const sett = await supabaseService.getSettings();
+          
+          const [m, p, s, c, e, n, att] = await Promise.all([
             supabaseService.getMembers(),
             supabaseService.getPayments(),
             supabaseService.getSessions(),
             supabaseService.getCoaches(),
             supabaseService.getExpenses(),
             Promise.resolve(loadNotifications()), 
-            supabaseService.getSettings(),
             supabaseService.getAttendance()
           ]);
           
@@ -128,11 +130,16 @@ export default function App() {
           setNotifications(n);
           setAttendance(att);
           if (sett) setSettings(sett);
-        } catch (error) {
-          console.error("Error loading data from Supabase:", error);
+          console.log("Supabase synced successfully.");
+        } catch (error: any) {
+          console.error("Supabase Error:", error.message || error);
+          if (error.message?.includes('failed to fetch')) {
+            console.error("Connection failed. Check your Supabase URL and Internet connection.");
+          }
           loadFromLocal();
         }
       } else {
+        console.log("Supabase not configured, using local storage.");
         loadFromLocal();
       }
       setIsLoadingData(false);
