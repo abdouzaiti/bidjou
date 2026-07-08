@@ -18,6 +18,8 @@ interface SettingsViewProps {
   onUpdateSettings: (newSettings: Partial<ClubSettings>) => void;
   onResetDatabase: () => void;
   onTriggerBackup: () => void;
+  isSupabaseConfigured: boolean;
+  isSupabaseOnline: boolean;
 }
 
 export default function SettingsView({
@@ -25,7 +27,9 @@ export default function SettingsView({
   t,
   onUpdateSettings,
   onResetDatabase,
-  onTriggerBackup
+  onTriggerBackup,
+  isSupabaseConfigured,
+  isSupabaseOnline
 }: SettingsViewProps) {
   // Local state copy
   const [clubName, setClubName] = useState(settings.clubName);
@@ -275,7 +279,30 @@ export default function SettingsView({
           </h3>
 
           <div className="space-y-4 text-xs">
-            <p className="text-slate-500 leading-relaxed">
+            {/* Sync Status Badge */}
+            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+              isSupabaseOnline 
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                : isSupabaseConfigured 
+                  ? 'bg-rose-50 border-rose-100 text-rose-800'
+                  : 'bg-slate-50 border-slate-100 text-slate-600'
+            }`}>
+              <Database className={`w-5 h-5 ${isSupabaseOnline ? 'text-emerald-500' : isSupabaseConfigured ? 'text-rose-500' : 'text-slate-400'}`} />
+              <div>
+                <span className="font-bold block">
+                  {isSupabaseOnline ? 'Connecté au Cloud (Supabase)' : isSupabaseConfigured ? 'Erreur de Connexion Cloud' : 'Mode Local (Hors-ligne)'}
+                </span>
+                <span className="text-[10px] opacity-80">
+                  {isSupabaseOnline 
+                    ? 'Toutes vos données sont synchronisées en temps réel.' 
+                    : isSupabaseConfigured 
+                      ? 'Vérifiez vos tables Supabase ou votre connexion.' 
+                      : 'Les données sont stockées uniquement sur ce navigateur.'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-slate-500 leading-relaxed pt-2">
               Pour des raisons de sécurité, vous pouvez à tout moment exporter une copie cryptée de votre base de données locale ou réinitialiser le système à l'état de livraison d'usine.
             </p>
 

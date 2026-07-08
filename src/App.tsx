@@ -42,7 +42,12 @@ import LoginView from './components/LoginView';
 
 export default function App() {
   // Supabase Status
-  const isSupabaseConfigured = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+  const isSupabaseConfigured = Boolean(
+    import.meta.env.VITE_SUPABASE_URL && 
+    import.meta.env.VITE_SUPABASE_ANON_KEY && 
+    import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL'
+  );
+  const [isSupabaseOnline, setIsSupabaseOnline] = useState<boolean>(false);
 
   // Authentication
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -133,9 +138,11 @@ export default function App() {
           setNotifications(n);
           setAttendance(att);
           if (sett) setSettings(sett);
+          setIsSupabaseOnline(true);
           console.log("Supabase synced successfully.");
         } catch (error: any) {
           console.error("Supabase Error:", error.message || error);
+          setIsSupabaseOnline(false);
           if (error.message?.includes('failed to fetch')) {
             console.error("Connection failed. Check your Supabase URL and Internet connection.");
           }
@@ -198,8 +205,10 @@ export default function App() {
       try {
         await supabaseService.updateMember(id, updatedFields);
         setMembers(members.map(m => m.id === id ? { ...m, ...updatedFields } as Member : m));
-      } catch (error) {
+        triggerNotification('Mise à jour', 'Dossier membre mis à jour dans le cloud.', 'Announcement');
+      } catch (error: any) {
         console.error("Error updating member in Supabase:", error);
+        triggerNotification('Erreur Sync', `Échec de mise à jour: ${error.message}`, 'Alert');
       }
     } else {
       const updated = members.map(m => m.id === id ? { ...m, ...updatedFields } as Member : m);
@@ -675,6 +684,8 @@ export default function App() {
             onUpdateSettings={handleUpdateSettings}
             onResetDatabase={handleResetDatabase}
             onTriggerBackup={handleTriggerBackup}
+            isSupabaseConfigured={isSupabaseConfigured}
+            isSupabaseOnline={isSupabaseOnline}
           />
         );
       default:

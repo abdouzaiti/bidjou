@@ -286,18 +286,38 @@ export const supabaseService = {
       if (error.code === '42P01') return [];
       throw error;
     }
-    return data || [];
+    return (data || []).map(e => ({
+      id: e.id,
+      title: e.title,
+      amount: e.amount,
+      category: e.category,
+      date: e.date,
+      description: e.description
+    }));
   },
 
   async addExpense(expense: Omit<Expense, 'id'>): Promise<Expense> {
     const { data, error } = await supabase
       .from('expenses')
-      .insert([expense])
+      .insert([{
+        title: expense.title,
+        amount: expense.amount,
+        category: expense.category,
+        date: expense.date,
+        description: expense.description
+      }])
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      id: data.id,
+      title: data.title,
+      amount: data.amount,
+      category: data.category,
+      date: data.date,
+      description: data.description
+    };
   },
 
   async deleteExpense(id: string): Promise<void> {
