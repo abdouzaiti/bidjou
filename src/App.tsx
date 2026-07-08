@@ -118,35 +118,40 @@ export default function App() {
       setIsLoadingData(true);
       if (isSupabaseConfigured) {
         try {
-          // Verify connection by fetching settings first
+          // 1. Load Settings first to ensure login works
           const sett = await supabaseService.getSettings();
-          
-          const [m, p, s, c, e, n, att] = await Promise.all([
+          if (sett) setSettings(sett);
+
+          // 2. Load other data in parallel, but handle each one individually
+          const results = await Promise.allSettled([
             supabaseService.getMembers(),
             supabaseService.getPayments(),
             supabaseService.getSessions(),
             supabaseService.getCoaches(),
             supabaseService.getExpenses(),
-            Promise.resolve(loadNotifications()), 
             supabaseService.getAttendance()
           ]);
           
-          setMembers(m);
-          setPayments(p);
-          setSessions(s);
-          setCoaches(c);
-          setExpenses(e);
-          setNotifications(n);
-          setAttendance(att);
-          if (sett) setSettings(sett);
-          setIsSupabaseOnline(true);
-          console.log("Supabase synced successfully.");
-        } catch (error: any) {
-          console.error("Supabase Error:", error.message || error);
-          setIsSupabaseOnline(false);
-          if (error.message?.includes('failed to fetch')) {
-            console.error("Connection failed. Check your Supabase URL and Internet connection.");
+          if (results[0].status === 'fulfilled') setMembers(results[0].value);
+          if (results[1].status === 'fulfilled') setPayments(results[1].value);
+          if (results[2].status === 'fulfilled') setSessions(results[2].value);
+          if (results[3].status === 'fulfilled') setCoaches(results[3].value);
+          if (results[4].status === 'fulfilled') setExpenses(results[4].value);
+          if (results[5].status === 'fulfilled') setAttendance(results[5].value);
+
+          // Check if any failed
+          const failures = results.filter(r => r.status === 'rejected');
+          if (failures.length > 0) {
+            const errorMsg = (failures[0] as PromiseRejectedResult).reason?.message || 'Erreur de table';
+            console.error("Some tables failed to load:", errorMsg);
+            triggerNotification('Avertissement Base', `Certaines données n'ont pas pu être chargées: ${errorMsg}`, 'Alert');
           }
+
+          setIsSupabaseOnline(true);
+        } catch (error: any) {
+          console.error("Supabase Connection Error:", error.message || error);
+          setIsSupabaseOnline(false);
+          triggerNotification('Erreur Supabase', `Connexion impossible: ${error.message}`, 'Alert');
           loadFromLocal();
         }
       } else {

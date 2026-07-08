@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     title TEXT NOT NULL,
     coach_id TEXT,
     location TEXT,
-    date DATE,
+    date DATE DEFAULT CURRENT_DATE,
     time TIME,
     description TEXT,
     capacity INTEGER
