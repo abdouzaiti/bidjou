@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 // Domain models
-import { Member, Payment, Session, Coach, Expense, AppNotification, ClubSettings } from './types';
+import { Member, Payment, Session, Coach, Expense, AppNotification, ClubSettings, Attendance } from './types';
 
 // Storage & Utilities
 import { 
@@ -24,6 +24,7 @@ import {
   loadSettings, saveSettings,
   resetStoredData
 } from './utils/mockData';
+import { supabaseService } from './lib/supabaseService';
 import { getTranslation } from './utils/translations';
 
 // Subcomponents
@@ -40,6 +41,9 @@ import SettingsView from './components/SettingsView';
 import LoginView from './components/LoginView';
 
 export default function App() {
+  // Supabase Status
+  const isSupabaseConfigured = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+
   // Authentication
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
@@ -74,6 +78,7 @@ export default function App() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [settings, setSettings] = useState<ClubSettings>({
     clubName: "Les Bijoux d'Oran",
     clubLogo: "🥋",
@@ -82,6 +87,7 @@ export default function App() {
     language: "fr",
     theme: "light"
   });
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Simulator Roles
   const [activeRole, setActiveRole] = useState<'Admin' | 'Coach' | 'Treasurer'>('Admin');
@@ -99,159 +105,299 @@ export default function App() {
 
   // Initial Seed Loading
   useEffect(() => {
-    setMembers(loadMembers());
-    setPayments(loadPayments());
-    setSessions(loadSessions());
-    setCoaches(loadCoaches());
-    setExpenses(loadExpenses());
-    setNotifications(loadNotifications());
-    setSettings(loadSettings());
-  }, []);
+    const loadAllData = async () => {
+      setIsLoadingData(true);
+      if (isSupabaseConfigured) {
+        try {
+          const [m, p, s, c, e, n, sett, att] = await Promise.all([
+            supabaseService.getMembers(),
+            supabaseService.getPayments(),
+            supabaseService.getSessions(),
+            supabaseService.getCoaches(),
+            supabaseService.getExpenses(),
+            Promise.resolve(loadNotifications()), 
+            supabaseService.getSettings(),
+            supabaseService.getAttendance()
+          ]);
+          
+          setMembers(m);
+          setPayments(p);
+          setSessions(s);
+          setCoaches(c);
+          setExpenses(e);
+          setNotifications(n);
+          setAttendance(att);
+          if (sett) setSettings(sett);
+        } catch (error) {
+          console.error("Error loading data from Supabase:", error);
+          loadFromLocal();
+        }
+      } else {
+        loadFromLocal();
+      }
+      setIsLoadingData(false);
+    };
+
+    const loadFromLocal = () => {
+      setMembers(loadMembers());
+      setPayments(loadPayments());
+      setSessions(loadSessions());
+      setCoaches(loadCoaches());
+      setExpenses(loadExpenses());
+      setNotifications(loadNotifications());
+      setSettings(loadSettings());
+      setAttendance(JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]'));
+    };
+
+    loadAllData();
+  }, [isSupabaseConfigured]);
 
   // Translation Helper
   const t = (key: string) => getTranslation(key, settings.language);
 
   // HANDLERS : Members
-  const handleAddMember = (newMember: Omit<Member, 'id' | 'membershipNumber'>) => {
-    const fresh: Member = {
-      ...newMember,
-      id: `member-${Date.now()}`,
-      membershipNumber: `BJO-2026-${String(members.length + 1).padStart(3, '0')}`
-    };
-    const updated = [fresh, ...members];
-    setMembers(updated);
-    saveMembers(updated);
+  const handleAddMember = async (newMember: Omit<Member, 'id' | 'membershipNumber'>) => {
+    const membershipNumber = `BJO-2026-${String(members.length + 1).padStart(3, '0')}`;
+    
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.addMember({ ...newMember, membershipNumber });
+        setMembers([fresh, ...members]);
+      } catch (error) {
+        console.error("Error adding member to Supabase:", error);
+      }
+    } else {
+      const fresh: Member = {
+        ...newMember,
+        id: `member-${Date.now()}`,
+        membershipNumber
+      };
+      const updated = [fresh, ...members];
+      setMembers(updated);
+      saveMembers(updated);
+    }
 
-    // Dynamic notification trigger
-    triggerNotification('Nouveau Membre', `L'athlète ${fresh.name} a été inscrit avec succès sous le matricule ${fresh.membershipNumber}.`, 'Announcement');
+    triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès sous le matricule ${membershipNumber}.`, 'Announcement');
   };
 
-  const handleUpdateMember = (id: string, updatedFields: Partial<Member>) => {
-    const updated = members.map(m => m.id === id ? { ...m, ...updatedFields } as Member : m);
-    setMembers(updated);
-    saveMembers(updated);
+  const handleUpdateMember = async (id: string, updatedFields: Partial<Member>) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.updateMember(id, updatedFields);
+        setMembers(members.map(m => m.id === id ? { ...m, ...updatedFields } as Member : m));
+      } catch (error) {
+        console.error("Error updating member in Supabase:", error);
+      }
+    } else {
+      const updated = members.map(m => m.id === id ? { ...m, ...updatedFields } as Member : m);
+      setMembers(updated);
+      saveMembers(updated);
+    }
   };
 
-  const handleDeleteMember = (id: string) => {
-    const updated = members.filter(m => m.id !== id);
-    setMembers(updated);
-    saveMembers(updated);
+  const handleDeleteMember = async (id: string) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.deleteMember(id);
+        setMembers(members.filter(m => m.id !== id));
+      } catch (error) {
+        console.error("Error deleting member from Supabase:", error);
+      }
+    } else {
+      const updated = members.filter(m => m.id !== id);
+      setMembers(updated);
+      saveMembers(updated);
+    }
   };
 
   // HANDLERS : Attendance (Pointage)
-  const handleRecordAttendance = (memberId: string, status: 'Present' | 'Late' | 'Absent', sessionId: string) => {
-    // Generate new entry
+  const handleRecordAttendance = async (memberId: string, status: 'Present' | 'Late' | 'Absent', sessionId: string) => {
     const todayStr = '2026-07-07';
     const currentTimeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     
-    // Read previous records from local storage directly or state
-    const currentList = [...loadPayments()]; // temporary check, actual is attendance database
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.recordAttendance({
+          memberId,
+          date: todayStr,
+          time: currentTimeStr,
+          status,
+          sessionId,
+          coachId: activeRole === 'Coach' ? 'coach-bidjou' : 'admin' // default or active coach
+        });
+        setAttendance([fresh, ...attendance]);
+      } catch (error) {
+        console.error("Error recording attendance in Supabase:", error);
+      }
+    } else {
+      const storedAttendance = JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
+      const filtered = storedAttendance.filter((a: any) => !(a.memberId === memberId && a.date === todayStr && a.sessionId === sessionId));
+      
+      const newRecord = {
+        id: `att-${Date.now()}`,
+        memberId,
+        date: todayStr,
+        time: currentTimeStr,
+        status,
+        sessionId
+      };
 
-    // Since we maintain attendance list in our custom mockData.ts localStorage, let's load/save it
-    const storedAttendance = JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
-    
-    // Exclude if already exists for same member, day, and session
-    const filtered = storedAttendance.filter((a: any) => !(a.memberId === memberId && a.date === todayStr && a.sessionId === sessionId));
-    
-    const newRecord = {
-      id: `att-${Date.now()}`,
-      memberId,
-      date: todayStr,
-      time: currentTimeStr,
-      status,
-      sessionId
-    };
-
-    const updated = [newRecord, ...filtered];
-    localStorage.setItem('les_bijoux_oran_attendance', JSON.stringify(updated));
-    
-    // Force trigger re-render of attendance state variables in views
-    // Simply trigger an alert or state updater
-    // Force sync state by reading again
-    setMembers([...loadMembers()]); // triggers state change cascade
+      const updated = [newRecord, ...filtered];
+      localStorage.setItem('les_bijoux_oran_attendance', JSON.stringify(updated));
+      setAttendance(updated);
+    }
   };
 
-  const handleClearTodayAttendance = () => {
+  const handleClearTodayAttendance = async () => {
     const todayStr = '2026-07-07';
-    const storedAttendance = JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
-    const filtered = storedAttendance.filter((a: any) => a.date !== todayStr);
-    localStorage.setItem('les_bijoux_oran_attendance', JSON.stringify(filtered));
-    setMembers([...loadMembers()]); // force sync
-  };
-
-  // Get live list of attendances safely
-  const getAttendanceList = () => {
-    return JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.clearTodayAttendance(todayStr);
+        setAttendance(attendance.filter(a => a.date !== todayStr));
+      } catch (error) {
+        console.error("Error clearing attendance in Supabase:", error);
+      }
+    } else {
+      const storedAttendance = JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
+      const filtered = storedAttendance.filter((a: any) => a.date !== todayStr);
+      localStorage.setItem('les_bijoux_oran_attendance', JSON.stringify(filtered));
+      setAttendance(filtered);
+    }
   };
 
   // HANDLERS : Payments
-  const handleRecordPayment = (newPayment: Omit<Payment, 'id' | 'receiptNumber'>) => {
-    const fresh: Payment = {
-      ...newPayment,
-      id: `pay-${Date.now()}`,
-      receiptNumber: `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`
-    };
-    const updated = [fresh, ...payments];
-    setPayments(updated);
-    savePayments(updated);
+  const handleRecordPayment = async (newPayment: Omit<Payment, 'id' | 'receiptNumber'>) => {
+    const receiptNumber = `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.addPayment({ ...newPayment, receiptNumber });
+        setPayments([fresh, ...payments]);
+      } catch (error) {
+        console.error("Error adding payment to Supabase:", error);
+      }
+    } else {
+      const fresh: Payment = {
+        ...newPayment,
+        id: `pay-${Date.now()}`,
+        receiptNumber
+      };
+      const updated = [fresh, ...payments];
+      setPayments(updated);
+      savePayments(updated);
+    }
 
     // Add alert notification
-    const m = members.find(athlete => athlete.id === fresh.memberId);
-    triggerNotification('Paiement Enregistré', `Reçu ${fresh.receiptNumber} validé pour ${m ? m.name : 'un membre'} (${fresh.amount} ${settings.currency}).`, 'Reminder');
+    const m = members.find(athlete => athlete.id === newPayment.memberId);
+    triggerNotification('Paiement Enregistré', `Reçu ${receiptNumber} validé pour ${m ? m.name : 'un membre'} (${newPayment.amount} ${settings.currency}).`, 'Reminder');
   };
 
   // HANDLERS : Sessions (Planning)
-  const handleAddSession = (newSession: Omit<Session, 'id'>) => {
-    const fresh: Session = {
-      ...newSession,
-      id: `session-${Date.now()}`
-    };
-    const updated = [fresh, ...sessions];
-    setSessions(updated);
-    saveSessions(updated);
-    triggerNotification('Nouvelle Séance', `La séance "${fresh.title}" est maintenant planifiée le ${fresh.date}.`, 'Reminder');
+  const handleAddSession = async (newSession: Omit<Session, 'id'>) => {
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.addSession(newSession);
+        setSessions([fresh, ...sessions]);
+      } catch (error) {
+        console.error("Error adding session to Supabase:", error);
+      }
+    } else {
+      const fresh: Session = {
+        ...newSession,
+        id: `session-${Date.now()}`
+      };
+      const updated = [fresh, ...sessions];
+      setSessions(updated);
+      saveSessions(updated);
+    }
+    triggerNotification('Nouvelle Séance', `La séance "${newSession.title}" est maintenant planifiée le ${newSession.date}.`, 'Reminder');
   };
 
-  const handleDeleteSession = (id: string) => {
-    const updated = sessions.filter(s => s.id !== id);
-    setSessions(updated);
-    saveSessions(updated);
+  const handleDeleteSession = async (id: string) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.deleteSession(id);
+        setSessions(sessions.filter(s => s.id !== id));
+      } catch (error) {
+        console.error("Error deleting session from Supabase:", error);
+      }
+    } else {
+      const updated = sessions.filter(s => s.id !== id);
+      setSessions(updated);
+      saveSessions(updated);
+    }
   };
 
   // HANDLERS : Coaches
-  const handleAddCoach = (newCoach: Omit<Coach, 'id'>) => {
-    const fresh: Coach = {
-      ...newCoach,
-      id: `coach-${Date.now()}`
-    };
-    const updated = [fresh, ...coaches];
-    setCoaches(updated);
-    saveCoaches(updated);
-    triggerNotification('Entraîneur Inscrit', `Le coach expert ${fresh.name} a été ajouté à l'équipe.`, 'Announcement');
+  const handleAddCoach = async (newCoach: Omit<Coach, 'id'>) => {
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.addCoach(newCoach);
+        setCoaches([fresh, ...coaches]);
+      } catch (error) {
+        console.error("Error adding coach to Supabase:", error);
+      }
+    } else {
+      const fresh: Coach = {
+        ...newCoach,
+        id: `coach-${Date.now()}`
+      };
+      const updated = [fresh, ...coaches];
+      setCoaches(updated);
+      saveCoaches(updated);
+    }
+    triggerNotification('Entraîneur Inscrit', `Le coach expert ${newCoach.name} a été ajouté à l'équipe.`, 'Announcement');
   };
 
-  const handleDeleteCoach = (id: string) => {
-    const updated = coaches.filter(c => c.id !== id);
-    setCoaches(updated);
-    saveCoaches(updated);
+  const handleDeleteCoach = async (id: string) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.deleteCoach(id);
+        setCoaches(coaches.filter(c => c.id !== id));
+      } catch (error) {
+        console.error("Error deleting coach from Supabase:", error);
+      }
+    } else {
+      const updated = coaches.filter(c => c.id !== id);
+      setCoaches(updated);
+      saveCoaches(updated);
+    }
   };
 
   // HANDLERS : Expenses
-  const handleAddExpense = (newExpense: Omit<Expense, 'id'>) => {
-    const fresh: Expense = {
-      ...newExpense,
-      id: `expense-${Date.now()}`
-    };
-    const updated = [fresh, ...expenses];
-    setExpenses(updated);
-    saveExpenses(updated);
-    triggerNotification('Sortie de caisse', `Une dépense de ${fresh.amount} ${settings.currency} a été déclarée : ${fresh.title}.`, 'Alert');
+  const handleAddExpense = async (newExpense: Omit<Expense, 'id'>) => {
+    if (isSupabaseConfigured) {
+      try {
+        const fresh = await supabaseService.addExpense(newExpense);
+        setExpenses([fresh, ...expenses]);
+      } catch (error) {
+        console.error("Error adding expense to Supabase:", error);
+      }
+    } else {
+      const fresh: Expense = {
+        ...newExpense,
+        id: `expense-${Date.now()}`
+      };
+      const updated = [fresh, ...expenses];
+      setExpenses(updated);
+      saveExpenses(updated);
+    }
+    triggerNotification('Sortie de caisse', `Une dépense de ${newExpense.amount} ${settings.currency} a été déclarée : ${newExpense.title}.`, 'Alert');
   };
 
-  const handleDeleteExpense = (id: string) => {
-    const updated = expenses.filter(e => e.id !== id);
-    setExpenses(updated);
-    saveExpenses(updated);
+  const handleDeleteExpense = async (id: string) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.deleteExpense(id);
+        setExpenses(expenses.filter(e => e.id !== id));
+      } catch (error) {
+        console.error("Error deleting expense from Supabase:", error);
+      }
+    } else {
+      const updated = expenses.filter(e => e.id !== id);
+      setExpenses(updated);
+      saveExpenses(updated);
+    }
   };
 
   // HANDLERS : Notifications
@@ -285,11 +431,20 @@ export default function App() {
   };
 
   // HANDLERS : Settings
-  const handleUpdateSettings = (newSettings: Partial<ClubSettings>) => {
+  const handleUpdateSettings = async (newSettings: Partial<ClubSettings>) => {
     const updated = {
       ...settings,
       ...newSettings
     };
+    
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.updateSettings(newSettings);
+      } catch (error) {
+        console.error("Error updating settings in Supabase:", error);
+      }
+    }
+    
     setSettings(updated);
     saveSettings(updated);
   };
@@ -357,7 +512,7 @@ export default function App() {
       coaches,
       expenses,
       notifications,
-      attendance: getAttendanceList()
+      attendance: attendance
     };
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(databaseSnapshot, null, 2));
@@ -385,7 +540,7 @@ export default function App() {
             members={members}
             payments={payments}
             expenses={expenses}
-            attendance={getAttendanceList()}
+            attendance={attendance}
             sessions={sessions}
             logs={JSON.parse(localStorage.getItem('bjo_logs') || '[]')}
             currency={settings.currency}
@@ -401,7 +556,7 @@ export default function App() {
           <MembersView 
             members={members}
             payments={payments}
-            attendance={getAttendanceList()}
+            attendance={attendance}
             currency={settings.currency}
             t={t}
             onAddMember={handleAddMember}
@@ -415,7 +570,7 @@ export default function App() {
         return (
           <AttendanceView 
             members={members}
-            attendance={getAttendanceList()}
+            attendance={attendance}
             sessions={sessions}
             coaches={coaches}
             t={t}
@@ -444,7 +599,7 @@ export default function App() {
             sessions={sessions}
             coaches={coaches}
             members={members}
-            attendance={getAttendanceList()}
+            attendance={attendance}
             t={t}
             onAddSession={handleAddSession}
             onDeleteSession={handleDeleteSession}
@@ -476,7 +631,7 @@ export default function App() {
             members={members}
             payments={payments}
             expenses={expenses}
-            attendance={getAttendanceList()}
+            attendance={attendance}
             currency={settings.currency}
             t={t}
           />

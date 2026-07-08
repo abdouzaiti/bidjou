@@ -146,7 +146,7 @@ export default function LoginView({ onLoginSuccess, settings }: LoginViewProps) 
             Accès Admin: <span className="text-slate-400">admin / admin</span>
           </p>
           <p className="text-[10px] text-slate-600 font-medium mt-1">
-            Accès Coach: <span className="text-slate-400">coach / password</span>
+            Accès Coach: <span className="text-slate-400">{settings.coachUsername || 'coach'} / {settings.coachPassword || 'password'}</span>
           </p>
         </motion.div>
       </motion.div>

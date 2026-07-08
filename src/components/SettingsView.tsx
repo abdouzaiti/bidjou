@@ -44,10 +44,12 @@ export default function SettingsView({
 
   // Success message state
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateSettings({
+    setIsSaving(true);
+    await onUpdateSettings({
       clubName,
       clubLogo,
       defaultMonthlyFee,
@@ -61,6 +63,7 @@ export default function SettingsView({
       requireCoachPassword
     });
 
+    setIsSaving(false);
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
@@ -250,10 +253,15 @@ export default function SettingsView({
               <button 
                 id="btn-submit-settings-form"
                 type="submit"
-                className="flex items-center gap-2 px-5 py-2.5 bg-bento-gold hover:bg-bento-gold-dark text-xs font-bold text-bento-blue rounded-xl shadow-md transition-all cursor-pointer border border-bento-gold/20"
+                disabled={isSaving}
+                className="flex items-center gap-2 px-5 py-2.5 bg-bento-gold hover:bg-bento-gold-dark disabled:bg-slate-200 disabled:text-slate-400 text-xs font-bold text-bento-blue rounded-xl shadow-md transition-all cursor-pointer border border-bento-gold/20"
               >
-                <Save className="w-4 h-4" />
-                Enregistrer la configuration
+                {isSaving ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {isSaving ? 'Enregistrement...' : 'Enregistrer la configuration'}
               </button>
             </div>
           </form>
