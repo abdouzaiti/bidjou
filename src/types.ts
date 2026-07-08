@@ -31,6 +31,7 @@ export interface Member {
   medicalNotes: string;
   emergencyInfo: string;
   jetonId?: string;
+  bloodType?: string;
 }
 
 export interface Attendance {
@@ -103,6 +104,9 @@ export interface ClubSettings {
   currency: string; // e.g., "DZD"
   language: 'fr' | 'ar' | 'en';
   theme: 'light' | 'dark';
+  coachUsername?: string;
+  coachPassword?: string;
+  requireCoachPassword?: boolean;
 }
 
 export interface ActivityLog {

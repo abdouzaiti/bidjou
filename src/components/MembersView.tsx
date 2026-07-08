@@ -68,7 +68,8 @@ export default function MembersView({
     notes: '',
     medicalNotes: '',
     emergencyInfo: '',
-    jetonId: ''
+    jetonId: '',
+    bloodType: ''
   });
 
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
@@ -113,7 +114,8 @@ export default function MembersView({
       notes: '',
       medicalNotes: '',
       emergencyInfo: '',
-      jetonId: ''
+      jetonId: '',
+      bloodType: ''
     });
   };
 
@@ -157,7 +159,8 @@ export default function MembersView({
       notes: member.notes,
       medicalNotes: member.medicalNotes,
       emergencyInfo: member.emergencyInfo,
-      jetonId: member.jetonId || ''
+      jetonId: member.jetonId || '',
+      bloodType: member.bloodType || ''
     });
     setIsFormOpen(true);
   };
@@ -218,7 +221,8 @@ export default function MembersView({
       monthlyFee: 3000,
       notes: 'Membre importé via fichier d\'intégration.',
       medicalNotes: 'Apte.',
-      emergencyInfo: 'R.A.S.'
+      emergencyInfo: 'R.A.S.',
+      bloodType: ['O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'][Math.floor(Math.random() * 8)]
     };
     onAddMember(simulatedMember);
   };
@@ -267,7 +271,7 @@ export default function MembersView({
               resetForm();
               setIsFormOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-neutral-950 bg-bento-gold hover:bg-bento-gold/90 rounded-xl shadow-sm transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
             {t('add_member')}
@@ -802,6 +806,27 @@ export default function MembersView({
                       />
                     </div>
 
+                    {/* Groupe Sanguin */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Groupe Sanguin</label>
+                      <select 
+                        id="form-bloodtype-select"
+                        value={formData.bloodType}
+                        onChange={(e) => setFormData({...formData, bloodType: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Non spécifié</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+
                     {/* Gender */}
                     <div>
                       <label className="block text-xs font-bold text-slate-600 mb-1.5">Genre</label>
@@ -1071,13 +1096,13 @@ export default function MembersView({
                       />
                     </div>
 
-                    {/* Group Sanguin etc. */}
+                    {/* Info Urgence Additionnelle */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Groupe Sanguin / Info Urgence</label>
+                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Autres Infos d'Urgence</label>
                       <input 
                         id="form-emergency-info-input"
                         type="text" 
-                        placeholder="Ex: O+ ou A-"
+                        placeholder="Ex: Allergies, etc."
                         value={formData.emergencyInfo}
                         onChange={(e) => setFormData({...formData, emergencyInfo: e.target.value})}
                         className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"

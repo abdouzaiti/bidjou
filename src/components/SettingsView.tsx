@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { 
   Settings, Save, Globe, DollarSign, Database, Moon, Sun, ShieldAlert,
-  Download, RefreshCw, Landmark, Heart, Sparkles, Smile
+  Download, RefreshCw, Landmark, Heart, Sparkles, Smile, Shield, CheckCircle
 } from 'lucide-react';
 import { ClubSettings } from '../types';
 import { resetStoredData } from '../utils/mockData';
@@ -34,6 +34,11 @@ export default function SettingsView({
   const [language, setLanguage] = useState(settings.language);
   const [theme, setTheme] = useState(settings.theme);
 
+  // Coach Account State
+  const [coachUsername, setCoachUsername] = useState(settings.coachUsername || 'coach');
+  const [coachPassword, setCoachPassword] = useState(settings.coachPassword || 'password');
+  const [requireCoachPassword, setRequireCoachPassword] = useState(settings.requireCoachPassword || false);
+
   // Success message state
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -45,7 +50,10 @@ export default function SettingsView({
       defaultMonthlyFee,
       currency,
       language,
-      theme
+      theme,
+      coachUsername,
+      coachPassword,
+      requireCoachPassword
     });
 
     setSaveSuccess(true);
@@ -67,7 +75,7 @@ export default function SettingsView({
 
       {saveSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-scale-in">
-          <CheckCircleIcon className="w-4 h-4 shrink-0" />
+          <CheckCircle className="w-4 h-4 shrink-0 animate-bounce" />
           <span>Paramètres sauvegardés avec succès ! Les modifications ont été appliquées.</span>
         </div>
       )}
@@ -102,19 +110,7 @@ export default function SettingsView({
 
 
 
-              {/* Default Currency */}
-              <div>
-                <label className="block font-bold text-slate-600 mb-1.5">{t('settings_currency')}</label>
-                <input 
-                  id="settings-currency-input"
-                  type="text" 
-                  required
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-400 rounded-xl font-semibold focus:outline-hidden"
-                  disabled
-                />
-              </div>
+
 
               {/* Language Selector */}
               <div>
@@ -138,11 +134,67 @@ export default function SettingsView({
 
             </div>
 
+            {/* Coach Account Configuration */}
+            <div className="border-t border-slate-100 pt-5 mt-5">
+              <h3 className="font-display font-bold text-bento-blue text-xs flex items-center gap-2 mb-3">
+                <Shield className="w-4 h-4 text-bento-gold" />
+                Compte Entraîneur (Coach)
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
+                  <div>
+                    <span className="font-bold text-slate-700 block">Exiger une authentification</span>
+                    <span className="text-[10px] text-slate-400">Demander un nom d'utilisateur et un mot de passe pour passer en mode Coach</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input 
+                      id="toggle-require-password"
+                      type="checkbox" 
+                      checked={requireCoachPassword} 
+                      onChange={(e) => setRequireCoachPassword(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-bento-gold"></div>
+                  </label>
+                </div>
+
+                {requireCoachPassword && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs animate-scale-in">
+                    <div>
+                      <label className="block font-bold text-slate-600 mb-1.5">Nom d'utilisateur du Coach</label>
+                      <input 
+                        id="coach-username-input"
+                        type="text" 
+                        required={requireCoachPassword}
+                        value={coachUsername}
+                        onChange={(e) => setCoachUsername(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold focus:outline-hidden focus:ring-2 focus:ring-bento-gold/20 bg-white"
+                        placeholder="Ex: coach"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-600 mb-1.5">Mot de passe du Coach</label>
+                      <input 
+                        id="coach-password-input"
+                        type="password" 
+                        required={requireCoachPassword}
+                        value={coachPassword}
+                        onChange={(e) => setCoachPassword(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold focus:outline-hidden focus:ring-2 focus:ring-bento-gold/20 bg-white"
+                        placeholder="Ex: 123456"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="pt-4 border-t border-slate-50 flex justify-end">
               <button 
                 id="btn-submit-settings-form"
                 type="submit"
-                className="flex items-center gap-2 px-5 py-2.5 bg-bento-blue hover:bg-bento-gold hover:text-bento-blue text-xs font-bold text-white rounded-xl shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-bento-gold hover:bg-bento-gold-dark text-xs font-bold text-bento-blue rounded-xl shadow-md transition-all cursor-pointer border border-bento-gold/20"
               >
                 <Save className="w-4 h-4" />
                 Enregistrer la configuration

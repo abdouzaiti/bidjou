@@ -92,7 +92,7 @@ export default function NotificationsView({
           <button 
             id="btn-open-announcement-form"
             onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
           >
             <Megaphone className="w-4 h-4" />
             Créer un communiqué
@@ -265,7 +265,7 @@ export default function NotificationsView({
                   <button 
                     id="btn-submit-notif-form"
                     type="submit"
-                    className="px-5 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all"
+                    className="px-5 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
                   >
                     Diffuser l'annonce
                   </button>

@@ -96,7 +96,7 @@ export default function ExpensesView({
         <button 
           id="btn-open-expense-form"
           onClick={() => setIsFormOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all self-start"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all self-start border border-bento-gold/20"
         >
           <Plus className="w-4 h-4" />
           Déclarer une dépense
@@ -361,7 +361,7 @@ export default function ExpensesView({
                   <button 
                     id="btn-submit-expense-form"
                     type="submit"
-                    className="px-5 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all"
+                    className="px-5 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
                   >
                     Confirmer le paiement
                   </button>

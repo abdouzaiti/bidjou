@@ -79,7 +79,13 @@ export default function App() {
 
   // Simulator Roles
   const [activeRole, setActiveRole] = useState<'Admin' | 'Coach' | 'Treasurer'>('Admin');
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState<boolean>(false);
+
+  // Coach Authentication Modal States
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [pendingRole, setPendingRole] = useState<'Admin' | 'Coach' | 'Treasurer' | null>(null);
+  const [authUsername, setAuthUsername] = useState<string>('');
+  const [authPassword, setAuthPassword] = useState<string>('');
+  const [authError, setAuthError] = useState<string>('');
 
   // Quick action cross-triggers
   const [quickOpenScanner, setQuickOpenScanner] = useState<boolean>(false);
@@ -280,6 +286,43 @@ export default function App() {
     };
     setSettings(updated);
     saveSettings(updated);
+  };
+
+  // HANDLERS : Role Switch & Password Challenge
+  const handleRoleSwitchAttempt = (targetRole: 'Admin' | 'Coach' | 'Treasurer') => {
+    if (targetRole === 'Coach' && settings.requireCoachPassword) {
+      setPendingRole('Coach');
+      setAuthUsername('');
+      setAuthPassword('');
+      setAuthError('');
+      setIsAuthModalOpen(true);
+    } else {
+      setActiveRole(targetRole);
+      triggerNotification(
+        'Rôle Modifié',
+        `Vous êtes connecté en tant que ${targetRole === 'Admin' ? 'Administrateur' : targetRole === 'Coach' ? 'Entraîneur' : 'Trésorier'}.`,
+        'Announcement'
+      );
+    }
+  };
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const expectedUsername = settings.coachUsername || 'coach';
+    const expectedPassword = settings.coachPassword || 'password';
+    
+    if (authUsername === expectedUsername && authPassword === expectedPassword) {
+      setActiveRole('Coach');
+      setIsAuthModalOpen(false);
+      setAuthError('');
+      triggerNotification(
+        'Connexion Coach',
+        `Authentification réussie pour Coach Bidjou. Mode Entraîneur activé.`,
+        'Announcement'
+      );
+    } else {
+      setAuthError('Nom d\'utilisateur ou mot de passe incorrect.');
+    }
   };
 
   // Database Reset helper
@@ -614,17 +657,29 @@ export default function App() {
         {/* Coach Profile Block */}
         <div className="mt-8 pt-4 border-t border-white/10">
           <div className="relative">
-            <div 
-              className="w-full flex items-center gap-2.5 p-3 bg-gradient-to-r from-bento-gold/10 to-transparent border border-bento-gold/20 rounded-2xl transition-all text-left"
+            <button 
+              onClick={() => {
+                if (activeRole !== 'Coach') {
+                  handleRoleSwitchAttempt('Coach');
+                } else {
+                  handleRoleSwitchAttempt('Admin');
+                }
+              }}
+              className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-bento-gold/10 to-transparent border border-bento-gold/20 rounded-2xl transition-all text-left hover:from-bento-gold/20 hover:to-transparent cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full bg-bento-gold/20 flex items-center justify-center border border-bento-gold/30 shrink-0">
-                <span className="text-bento-gold text-xs font-bold">CB</span>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-full ${activeRole === 'Coach' ? 'bg-bento-gold text-neutral-950 ring-2 ring-bento-gold animate-pulse' : 'bg-bento-gold/20 text-bento-gold'} flex items-center justify-center border border-bento-gold/30 shrink-0`}>
+                  <span className="text-xs font-bold">CB</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-xs font-bold leading-none">Coach Bidjou</p>
+                  <p className="text-bento-gold text-[9px] font-semibold tracking-wider mt-1.5 uppercase">
+                    {activeRole === 'Coach' ? '● Session Coach' : 'Entraîneur Principal'}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-white text-xs font-bold leading-none">Coach Bidjou</p>
-                <p className="text-bento-gold text-[9px] font-semibold tracking-wider mt-1.5 uppercase">Entraîneur Principal</p>
-              </div>
-            </div>
+              <ChevronDown className="w-3.5 h-3.5 text-bento-gold opacity-60 shrink-0" />
+            </button>
           </div>
         </div>
 
@@ -642,6 +697,87 @@ export default function App() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Coach Password Auth Modal */}
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute inset-0 bg-neutral-950/80 backdrop-blur-xs"
+            />
+            
+            {/* Modal Box */}
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white rounded-3xl border border-slate-100 shadow-2xl p-6 w-full max-w-sm relative z-10 text-slate-800 animate-scale-in"
+            >
+              <div className="flex flex-col items-center text-center mb-5">
+                <div className="w-12 h-12 rounded-full bg-bento-gold/20 flex items-center justify-center mb-3 text-bento-gold border border-bento-gold/30">
+                  <Shield className="w-6 h-6 animate-pulse" />
+                </div>
+                <h3 className="font-display font-extrabold text-lg text-bento-blue uppercase tracking-tight">Accès Espace Entraîneur</h3>
+                <p className="text-xs text-slate-400 mt-1 font-medium">Saisissez les identifiants configurés dans les paramètres.</p>
+              </div>
+
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                {authError && (
+                  <div className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-center text-xs font-semibold">
+                    {authError}
+                  </div>
+                )}
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">Nom d'utilisateur</label>
+                    <input 
+                      type="text"
+                      required
+                      value={authUsername}
+                      onChange={(e) => setAuthUsername(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold focus:outline-hidden focus:ring-2 focus:ring-bento-blue/20 bg-slate-50"
+                      placeholder="Ex: coach"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">Mot de passe</label>
+                    <input 
+                      type="password"
+                      required
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold focus:outline-hidden focus:ring-2 focus:ring-bento-blue/20 bg-slate-50"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAuthModalOpen(false)}
+                    className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-500 rounded-xl transition-all cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 bg-bento-blue hover:bg-bento-gold hover:text-bento-blue text-xs font-bold text-white rounded-xl shadow-md transition-all cursor-pointer"
+                  >
+                    Se connecter
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

@@ -97,7 +97,7 @@ export default function SessionsView({
         <button 
           id="btn-open-session-form"
           onClick={() => setIsFormOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all self-start"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all self-start border border-bento-gold/20"
         >
           <Plus className="w-4 h-4" />
           {t('create_session')}
@@ -125,14 +125,14 @@ export default function SessionsView({
                   onClick={() => setSelectedSession(session)}
                   className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 flex flex-col justify-between min-h-[200px] text-left ${
                     isSelected 
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-4 ring-blue-100/50' 
+                      ? 'bg-bento-gold text-bento-blue border-bento-gold shadow-md ring-4 ring-bento-gold/20' 
                       : 'bg-white text-slate-800 border-slate-100 hover:border-slate-200 shadow-xs'
                   }`}
                 >
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">
                       <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full ${
-                        isSelected ? 'bg-white/20 text-blue-100' : 'bg-blue-50 text-blue-700'
+                        isSelected ? 'bg-bento-blue/10 text-bento-blue' : 'bg-blue-50 text-blue-700'
                       }`}>
                         🥋 Dojo
                       </span>
@@ -148,7 +148,7 @@ export default function SessionsView({
                           }
                         }}
                         className={`p-1 rounded-md transition-colors ${
-                          isSelected ? 'text-blue-200 hover:bg-white/10 hover:text-white' : 'text-slate-400 hover:bg-slate-50 hover:text-rose-600'
+                          isSelected ? 'text-bento-blue/60 hover:bg-bento-blue/10 hover:text-bento-blue' : 'text-slate-400 hover:bg-slate-50 hover:text-rose-600'
                         }`}
                         title="Supprimer"
                       >
@@ -158,7 +158,7 @@ export default function SessionsView({
 
                     <div className="space-y-1">
                       <h3 className="font-display font-bold text-sm leading-snug line-clamp-2">{session.title}</h3>
-                      <p className={`text-[10px] font-semibold ${isSelected ? 'text-blue-200' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] font-semibold ${isSelected ? 'text-bento-blue/70' : 'text-slate-400'}`}>
                         Coach : {coach ? coach.name : 'Non assigné'}
                       </p>
                     </div>
@@ -176,15 +176,15 @@ export default function SessionsView({
                   </div>
 
                   {/* Progress filler indicator */}
-                  <div className="pt-4 border-t border-dashed mt-4 border-white/20">
+                  <div className={`pt-4 border-t border-dashed mt-4 ${isSelected ? 'border-bento-blue/20' : 'border-slate-100'}`}>
                     <div className="flex justify-between text-[10px] font-bold mb-1 opacity-90">
                       <span>Remplissage</span>
                       <span>{presentCount} / {session.capacity} ({occupancyRate}%)</span>
                     </div>
-                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${isSelected ? 'bg-blue-800' : 'bg-slate-100'}`}>
+                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${isSelected ? 'bg-bento-blue/10' : 'bg-slate-100'}`}>
                       <div 
                         style={{ width: `${Math.min(100, occupancyRate)}%` }} 
-                        className={`h-full rounded-full ${isSelected ? 'bg-amber-400' : 'bg-blue-600'}`}
+                        className={`h-full rounded-full ${isSelected ? 'bg-bento-blue' : 'bg-blue-600'}`}
                       />
                     </div>
                   </div>
@@ -414,7 +414,7 @@ export default function SessionsView({
                   <button 
                     id="btn-submit-session-form"
                     type="submit"
-                    className="px-5 py-2 text-xs font-bold text-white bg-bento-blue hover:bg-bento-gold hover:text-bento-blue rounded-xl shadow-xs transition-all"
+                    className="px-5 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
                   >
                     Confirmer le planning
                   </button>

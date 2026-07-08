@@ -79,6 +79,7 @@ export const INITIAL_MEMBERS: Member[] = [
     notes: 'Compétiteur national. Très discipliné.',
     medicalNotes: 'Apte au sport de combat de haute intensité.',
     emergencyInfo: 'Groupe sanguin O+',
+    bloodType: 'O+',
     jetonId: 'JETON-YACINE-01'
   },
   {
@@ -98,6 +99,7 @@ export const INITIAL_MEMBERS: Member[] = [
     notes: 'Gymnaste prometteuse. Travaille ses acrobaties au sol.',
     medicalNotes: 'Entorse cheville gauche en 2024. Totalement guérie.',
     emergencyInfo: 'Allergie au paracétamol.',
+    bloodType: 'A-',
     jetonId: 'JETON-SOFIA-02'
   },
   {
@@ -117,6 +119,7 @@ export const INITIAL_MEMBERS: Member[] = [
     notes: 'Karatéka débutant, assidu aux entraînements.',
     medicalNotes: 'Aucune contre-indication.',
     emergencyInfo: 'Aucune',
+    bloodType: 'B+',
     jetonId: 'JETON-AMINE-03'
   },
   {
@@ -135,7 +138,8 @@ export const INITIAL_MEMBERS: Member[] = [
     monthlyFee: 3500,
     notes: 'Suspendu temporairement pour cause de déplacement professionnel.',
     medicalNotes: 'Apte.',
-    emergencyInfo: 'Groupe sanguin A+'
+    emergencyInfo: 'Groupe sanguin A+',
+    bloodType: 'A+'
   },
   {
     id: 'mbr-5',
@@ -154,6 +158,7 @@ export const INITIAL_MEMBERS: Member[] = [
     notes: 'Ado motivé par le judo de loisir.',
     medicalNotes: 'Asthme d\'effort léger (garde sa ventoline avec lui).',
     emergencyInfo: 'Inhalateur de secours dans son sac de sport.',
+    bloodType: 'AB+',
     jetonId: 'JETON-RAYAN-05'
   },
   {
@@ -173,6 +178,7 @@ export const INITIAL_MEMBERS: Member[] = [
     notes: 'Pratique le judo d\'auto-défense.',
     medicalNotes: 'R.A.S.',
     emergencyInfo: 'Groupe sanguin B+',
+    bloodType: 'B+',
     jetonId: 'JETON-HASSIBA-06'
   },
   {
@@ -191,7 +197,8 @@ export const INITIAL_MEMBERS: Member[] = [
     monthlyFee: 3000,
     notes: 'N\'a pas renouvelé son abonnement depuis mars 2026.',
     medicalNotes: 'R.A.S.',
-    emergencyInfo: 'Aucune'
+    emergencyInfo: 'Aucune',
+    bloodType: 'O-'
   }
 ];
 
@@ -427,7 +434,10 @@ export const INITIAL_SETTINGS: ClubSettings = {
   defaultMonthlyFee: 3000,
   currency: "DZD",
   language: "fr",
-  theme: "light"
+  theme: "light",
+  coachUsername: "coach",
+  coachPassword: "password",
+  requireCoachPassword: false
 };
 
 export const INITIAL_LOGS: ActivityLog[] = [
