@@ -437,6 +437,8 @@ export const INITIAL_SETTINGS: ClubSettings = {
   theme: "light",
   coachUsername: "coach",
   coachPassword: "password",
+  coachName: "Coach Bidjou",
+  coachPhoto: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=200&h=200&auto=format&fit=crop",
   requireCoachPassword: false
 };
 

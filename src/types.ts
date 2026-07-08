@@ -106,6 +106,8 @@ export interface ClubSettings {
   theme: 'light' | 'dark';
   coachUsername?: string;
   coachPassword?: string;
+  coachName?: string;
+  coachPhoto?: string;
   requireCoachPassword?: boolean;
 }
 

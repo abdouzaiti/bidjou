@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { 
   Settings, Save, Globe, DollarSign, Database, Moon, Sun, ShieldAlert,
-  Download, RefreshCw, Landmark, Heart, Sparkles, Smile, Shield, CheckCircle
+  Download, RefreshCw, Landmark, Heart, Sparkles, Smile, Shield, CheckCircle,
+  Upload, User
 } from 'lucide-react';
 import { ClubSettings } from '../types';
 import { resetStoredData } from '../utils/mockData';
@@ -37,6 +38,8 @@ export default function SettingsView({
   // Coach Account State
   const [coachUsername, setCoachUsername] = useState(settings.coachUsername || 'coach');
   const [coachPassword, setCoachPassword] = useState(settings.coachPassword || 'password');
+  const [coachName, setCoachName] = useState(settings.coachName || 'Coach Bidjou');
+  const [coachPhoto, setCoachPhoto] = useState(settings.coachPhoto || '');
   const [requireCoachPassword, setRequireCoachPassword] = useState(settings.requireCoachPassword || false);
 
   // Success message state
@@ -53,6 +56,8 @@ export default function SettingsView({
       theme,
       coachUsername,
       coachPassword,
+      coachName,
+      coachPhoto,
       requireCoachPassword
     });
 
@@ -187,6 +192,57 @@ export default function SettingsView({
                     </div>
                   </div>
                 )}
+
+                <div className="pt-4 border-t border-slate-50">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Profil Public de l'Entraîneur</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-1">Nom du Coach</label>
+                      <input 
+                        type="text" 
+                        value={coachName}
+                        onChange={(e) => setCoachName(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold focus:outline-hidden focus:ring-2 focus:ring-bento-gold/20 bg-white"
+                        placeholder="Ex: Coach Yacine"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-1">Photo de profil</label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                          {coachPhoto ? (
+                            <img src={coachPhoto} alt="Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400">
+                              <User className="w-6 h-6" />
+                            </div>
+                          )}
+                        </div>
+                        <label className="flex-1 cursor-pointer">
+                          <div className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-dashed border-slate-300 rounded-xl hover:border-bento-gold hover:bg-bento-gold/5 transition-all text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <Upload className="w-4 h-4 text-bento-gold" />
+                            <span>Choisir une image</span>
+                          </div>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setCoachPhoto(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

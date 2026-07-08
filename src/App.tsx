@@ -37,8 +37,12 @@ import ExpensesView from './components/ExpensesView';
 import ReportsView from './components/ReportsView';
 import NotificationsView from './components/NotificationsView';
 import SettingsView from './components/SettingsView';
+import LoginView from './components/LoginView';
 
 export default function App() {
+  // Authentication
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  
   // Navigation
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -46,11 +50,13 @@ export default function App() {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIntroActive(false);
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, []);
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        setIntroActive(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -366,6 +372,10 @@ export default function App() {
   // Safe checks for unread notifications counter
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  if (!isAuthenticated) {
+    return <LoginView onLoginSuccess={() => setIsAuthenticated(true)} settings={settings} />;
+  }
+
   // Render correct panel component based on currentView state
   const renderActiveView = () => {
     switch (currentView) {
@@ -654,31 +664,40 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Coach Profile Block */}
-        <div className="mt-8 pt-4 border-t border-white/10">
-          <div className="relative">
-            <button 
-              onClick={() => {
-                if (activeRole !== 'Coach') {
-                  handleRoleSwitchAttempt('Coach');
-                } else {
-                  handleRoleSwitchAttempt('Admin');
-                }
-              }}
-              className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-bento-gold/10 to-transparent border border-bento-gold/20 rounded-2xl transition-all text-left hover:from-bento-gold/20 hover:to-transparent cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-full ${activeRole === 'Coach' ? 'bg-bento-gold text-neutral-950 ring-2 ring-bento-gold animate-pulse' : 'bg-bento-gold/20 text-bento-gold'} flex items-center justify-center border border-bento-gold/30 shrink-0`}>
-                  <span className="text-xs font-bold">CB</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-white text-xs font-bold leading-none">Coach Bidjou</p>
-                  <p className="text-bento-gold text-[9px] font-semibold tracking-wider mt-1.5 uppercase">
-                    {activeRole === 'Coach' ? '● Session Coach' : 'Entraîneur Principal'}
-                  </p>
-                </div>
+        {/* Profile Section */}
+        <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
+          <div className="flex items-center gap-3 px-3 py-3 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bento-gold to-bento-gold-dark p-0.5 shadow-lg">
+              <div className="w-full h-full bg-neutral-900 rounded-[10px] overflow-hidden">
+                {settings.coachPhoto ? (
+                  <img 
+                    src={settings.coachPhoto} 
+                    alt="Coach" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-neutral-800 text-bento-gold font-bold text-xs">
+                    {settings.coachName?.charAt(0) || 'C'}
+                  </div>
+                )}
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-bento-gold opacity-60 shrink-0" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">
+                {settings.coachName || 'Coach'}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
+                <p className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest leading-none">Connecté</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsAuthenticated(false)}
+              className="p-2 text-white/40 hover:text-rose-400 hover:bg-rose-400/10 rounded-xl transition-all"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
