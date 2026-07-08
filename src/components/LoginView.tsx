@@ -5,29 +5,38 @@ import { Shield, Lock, User, ChevronRight } from 'lucide-react';
 interface LoginViewProps {
   onLoginSuccess: () => void;
   settings: any; // Using any for brevity or import ClubSettings
+  isLoading?: boolean;
 }
 
-export default function LoginView({ onLoginSuccess, settings }: LoginViewProps) {
+export default function LoginView({ onLoginSuccess, settings, isLoading }: LoginViewProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (isLoading) return;
+    
+    setIsSubmitting(true);
     setError('');
+
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
 
     // Simulated auth - matching settings logic in App.tsx
     setTimeout(() => {
-      const isCoach = username === (settings.coachUsername || 'coach') && password === (settings.coachPassword || 'password');
-      const isAdmin = (username === 'admin' && password === 'admin');
+      const currentUsername = (settings.coachUsername || 'coach').trim();
+      const currentPassword = (settings.coachPassword || 'password').trim();
+      
+      const isCoach = trimmedUsername === currentUsername && trimmedPassword === currentPassword;
+      const isAdmin = (trimmedUsername === 'admin' && trimmedPassword === 'admin');
       
       if (isCoach || isAdmin) {
         onLoginSuccess();
       } else {
         setError('Identifiants incorrects. Veuillez réessayer.');
-        setIsLoading(false);
+        setIsSubmitting(false);
       }
     }, 800);
   };
@@ -112,12 +121,15 @@ export default function LoginView({ onLoginSuccess, settings }: LoginViewProps) 
 
             <button 
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || isLoading}
               className="w-full group relative overflow-hidden bg-bento-gold hover:bg-bento-gold-dark text-neutral-950 font-black py-4 rounded-2xl shadow-xl shadow-bento-gold/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="relative z-10 flex items-center justify-center gap-2">
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-neutral-950/20 border-t-neutral-950 rounded-full animate-spin" />
+                {isSubmitting || isLoading ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-neutral-950/20 border-t-neutral-950 rounded-full animate-spin" />
+                    <span className="text-[10px] uppercase tracking-widest">{isLoading ? 'Synchronisation...' : 'Vérification...'}</span>
+                  </div>
                 ) : (
                   <>
                     <span>SE CONNECTER</span>

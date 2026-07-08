@@ -85,7 +85,10 @@ export default function App() {
     defaultMonthlyFee: 3000,
     currency: "DZD",
     language: "fr",
-    theme: "light"
+    theme: "light",
+    coachUsername: "coach",
+    coachPassword: "password",
+    coachName: "Coach Bidjou"
   });
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
@@ -170,8 +173,11 @@ export default function App() {
       try {
         const fresh = await supabaseService.addMember({ ...newMember, membershipNumber });
         setMembers([fresh, ...members]);
-      } catch (error) {
+        triggerNotification('Succès Sync', `L'athlète ${newMember.name} a été enregistré dans le cloud.`, 'Announcement');
+      } catch (error: any) {
         console.error("Error adding member to Supabase:", error);
+        triggerNotification('Erreur Sync', `Impossible d'ajouter à Supabase: ${error.message || 'Erreur inconnue'}`, 'Alert');
+        // Fallback local optionnel si vous voulez autoriser l'usage sans réseau
       }
     } else {
       const fresh: Member = {
@@ -184,7 +190,7 @@ export default function App() {
       saveMembers(updated);
     }
 
-    triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès sous le matricule ${membershipNumber}.`, 'Announcement');
+    triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès.`, 'Announcement');
   };
 
   const handleUpdateMember = async (id: string, updatedFields: Partial<Member>) => {
@@ -207,8 +213,10 @@ export default function App() {
       try {
         await supabaseService.deleteMember(id);
         setMembers(members.filter(m => m.id !== id));
-      } catch (error) {
+        triggerNotification('Suppression', 'Membre supprimé de la base de données.', 'Announcement');
+      } catch (error: any) {
         console.error("Error deleting member from Supabase:", error);
+        triggerNotification('Erreur Sync', `Échec de suppression: ${error.message}`, 'Alert');
       }
     } else {
       const updated = members.filter(m => m.id !== id);
@@ -535,7 +543,13 @@ export default function App() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   if (!isAuthenticated) {
-    return <LoginView onLoginSuccess={() => setIsAuthenticated(true)} settings={settings} />;
+    return (
+      <LoginView 
+        onLoginSuccess={() => setIsAuthenticated(true)} 
+        settings={settings} 
+        isLoading={isLoadingData}
+      />
+    );
   }
 
   // Render correct panel component based on currentView state
