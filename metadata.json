@@ -1,0 +1,6 @@
+{
+  "name": "Les Bijoux d'Oran Manager",
+  "description": "Premium SaaS-grade club management platform for Les Bijoux d'Oran, featuring members directories, attendance pointage via QR scanner, subscription payments tracking, custom reports, and visual analytics.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

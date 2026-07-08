@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  /* Bento Grid Theme Colors */
+  --color-bento-blue: #002366;
+  --color-bento-gold: #D4AF37;
+  --color-bento-gold-light: #F2D06B;
+  --color-bento-gold-dark: #B89647;
+  --color-bento-bg: #F4F5F7;
+  --color-bento-text: #1A1C1E;
+
+  /* Luxury Color Palette Customizations */
+  --color-gold-50: #fefdf0;
+  --color-gold-100: #fef8be;
+  --color-gold-200: #fdf090;
+  --color-gold-300: #fae055;
+  --color-gold-400: #f7cb25;
+  --color-gold-500: #e2b012;
+  --color-gold-600: #c18c0c;
+  --color-gold-700: #9b670d;
+  --color-gold-800: #7e5111;
+  --color-gold-900: #674213;
+  --color-gold-950: #3c2306;
+}
+
+/* Custom global scrollbars and glassmorphism styling for high-performance visual feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
