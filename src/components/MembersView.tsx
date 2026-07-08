@@ -8,7 +8,7 @@ import {
   Plus, Search, SlidersHorizontal, Grid, List, Download, Upload, 
   Trash2, Edit, CheckCircle, AlertTriangle, Eye, X, Phone, Mail, 
   ShieldAlert, Activity, DollarSign, Calendar, MapPin, Printer, Users, CheckSquare,
-  Camera, Image, UploadCloud, Link
+  Camera, Image, UploadCloud, Link, Cloud, Database
 } from 'lucide-react';
 import { Member, Payment, Attendance } from '../types';
 import { printMemberQRCard } from '../utils/pdfGenerator';
@@ -408,6 +408,16 @@ export default function MembersView({
                     <span className="text-[10px] font-mono text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-md">
                       {member.membershipNumber}
                     </span>
+                    {/* Cloud Sync Status */}
+                    {member.id.length > 15 ? (
+                      <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1">
+                        <Cloud className="w-2.5 h-2.5" /> CLOUD
+                      </span>
+                    ) : (
+                      <span className="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-100 flex items-center gap-1">
+                        <Database className="w-2.5 h-2.5" /> LOCAL
+                      </span>
+                    )}
                     {member.jetonId && (
                       <span className="text-[9px] font-mono text-bento-gold font-bold bg-bento-gold/10 border border-bento-gold/20 px-1.5 py-0.5 rounded-md">
                         🎫 {member.jetonId}

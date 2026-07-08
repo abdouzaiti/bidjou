@@ -68,7 +68,10 @@ export const supabaseService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", error);
+      throw new Error(`Erreur Supabase: ${error.message} (Code: ${error.code})`);
+    }
     return this.mapMember(data);
   },
 

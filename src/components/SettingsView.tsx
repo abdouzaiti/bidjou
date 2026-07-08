@@ -280,26 +280,42 @@ export default function SettingsView({
 
           <div className="space-y-4 text-xs">
             {/* Sync Status Badge */}
-            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+            <div className={`p-4 rounded-2xl border flex flex-col gap-3 ${
               isSupabaseOnline 
                 ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
                 : isSupabaseConfigured 
                   ? 'bg-rose-50 border-rose-100 text-rose-800'
-                  : 'bg-slate-50 border-slate-100 text-slate-600'
+                  : 'bg-amber-50 border-amber-100 text-amber-800'
             }`}>
-              <Database className={`w-5 h-5 ${isSupabaseOnline ? 'text-emerald-500' : isSupabaseConfigured ? 'text-rose-500' : 'text-slate-400'}`} />
-              <div>
-                <span className="font-bold block">
-                  {isSupabaseOnline ? 'Connecté au Cloud (Supabase)' : isSupabaseConfigured ? 'Erreur de Connexion Cloud' : 'Mode Local (Hors-ligne)'}
-                </span>
-                <span className="text-[10px] opacity-80">
-                  {isSupabaseOnline 
-                    ? 'Toutes vos données sont synchronisées en temps réel.' 
-                    : isSupabaseConfigured 
-                      ? 'Vérifiez vos tables Supabase ou votre connexion.' 
-                      : 'Les données sont stockées uniquement sur ce navigateur.'}
-                </span>
+              <div className="flex items-center gap-3">
+                <Database className={`w-5 h-5 ${isSupabaseOnline ? 'text-emerald-500' : isSupabaseConfigured ? 'text-rose-500' : 'text-amber-500'}`} />
+                <div>
+                  <span className="font-bold block">
+                    {isSupabaseOnline ? 'Connecté au Cloud (Supabase)' : isSupabaseConfigured ? 'Erreur de Connexion Cloud' : 'Mode Local Uniquement'}
+                  </span>
+                  <span className="text-[10px] opacity-80">
+                    {isSupabaseOnline 
+                      ? 'Toutes vos données sont synchronisées en temps réel.' 
+                      : isSupabaseConfigured 
+                        ? 'Vérifiez vos tables Supabase ou votre connexion.' 
+                        : 'Connectez Supabase pour sauvegarder vos données.'}
+                  </span>
+                </div>
               </div>
+
+              {!isSupabaseOnline && (
+                <div className="mt-2 p-3 bg-white/50 rounded-xl border border-black/5 space-y-2">
+                  <p className="font-bold text-[10px] uppercase tracking-wider">Instructions de Connexion :</p>
+                  <p className="text-[10px] leading-relaxed">
+                    Allez dans les <strong>Paramètres de l'IA (icône engrenage)</strong> et ajoutez ces variables d'environnement :
+                  </p>
+                  <ul className="text-[9px] font-mono list-disc list-inside opacity-70">
+                    <li>VITE_SUPABASE_URL</li>
+                    <li>VITE_SUPABASE_ANON_KEY</li>
+                  </ul>
+                  <p className="text-[9px] italic">Une fois ajoutées, l'application se synchronisera automatiquement.</p>
+                </div>
+              )}
             </div>
 
             <p className="text-slate-500 leading-relaxed pt-2">

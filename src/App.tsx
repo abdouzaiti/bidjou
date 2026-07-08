@@ -45,6 +45,7 @@ export default function App() {
   const isSupabaseConfigured = Boolean(
     import.meta.env.VITE_SUPABASE_URL && 
     import.meta.env.VITE_SUPABASE_ANON_KEY && 
+    !import.meta.env.VITE_SUPABASE_URL.includes('your-project-url') &&
     import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL'
   );
   const [isSupabaseOnline, setIsSupabaseOnline] = useState<boolean>(false);
