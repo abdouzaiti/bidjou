@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Shield, Lock, User, ChevronRight } from 'lucide-react';
 
 interface LoginViewProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (role: 'Admin' | 'Coach' | 'Treasurer') => void;
   settings: any; // Using any for brevity or import ClubSettings
   isLoading?: boolean;
 }
@@ -32,8 +32,10 @@ export default function LoginView({ onLoginSuccess, settings, isLoading }: Login
       const isCoach = trimmedUsername === currentUsername && trimmedPassword === currentPassword;
       const isAdmin = (trimmedUsername === 'admin' && trimmedPassword === 'admin');
       
-      if (isCoach || isAdmin) {
-        onLoginSuccess();
+      if (isCoach) {
+        onLoginSuccess('Coach');
+      } else if (isAdmin) {
+        onLoginSuccess('Admin');
       } else {
         setError('Identifiants incorrects. Veuillez réessayer.');
         setIsSubmitting(false);

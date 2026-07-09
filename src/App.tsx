@@ -52,20 +52,25 @@ export default function App() {
   const [isSupabaseOnline, setIsSupabaseOnline] = useState<boolean>(false);
 
   // Authentication
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('les_bijoux_oran_auth') === 'true';
+  });
   
   // Navigation
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [introActive, setIntroActive] = useState<boolean>(true);
+  const [introActive, setIntroActive] = useState<boolean>(!isAuthenticated);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
+    localStorage.setItem('les_bijoux_oran_auth', isAuthenticated.toString());
     if (isAuthenticated) {
       const timer = setTimeout(() => {
         setIntroActive(false);
       }, 1800);
       return () => clearTimeout(timer);
+    } else {
+      setIntroActive(true);
     }
   }, [isAuthenticated]);
 
@@ -100,7 +105,13 @@ export default function App() {
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Simulator Roles
-  const [activeRole, setActiveRole] = useState<'Admin' | 'Coach' | 'Treasurer'>('Admin');
+  const [activeRole, setActiveRole] = useState<'Admin' | 'Coach' | 'Treasurer'>(() => {
+    return (localStorage.getItem('les_bijoux_oran_role') as any) || 'Admin';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('les_bijoux_oran_role', activeRole);
+  }, [activeRole]);
 
   // Coach Authentication Modal States
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -586,7 +597,10 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <LoginView 
-        onLoginSuccess={() => setIsAuthenticated(true)} 
+        onLoginSuccess={(role) => {
+          setActiveRole(role);
+          setIsAuthenticated(true);
+        }} 
         settings={settings} 
         isLoading={isLoadingData}
       />
