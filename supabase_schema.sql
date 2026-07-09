@@ -1,5 +1,5 @@
 -- SQL Schema for Bijoux d'Oran Sport Club
--- This script ensures all tables and columns exist.
+-- This script ensures all tables and columns exist and match the app's expectations.
 
 -- 1. Members Table
 CREATE TABLE IF NOT EXISTS members (
@@ -98,15 +98,40 @@ CREATE TABLE IF NOT EXISTS coaches (
 );
 
 -- 8. COMPREHENSIVE SCHEMA MIGRATION (Fix all potential missing columns)
+-- Run this if your tables already exist but are missing columns.
 DO $$ 
 BEGIN 
-    -- Members Table Column Checks
+    -- MEMBERS Table Fixes
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='membership_number') THEN
+        ALTER TABLE members ADD COLUMN membership_number TEXT UNIQUE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='photo_url') THEN
+        ALTER TABLE members ADD COLUMN photo_url TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='gender') THEN
+        ALTER TABLE members ADD COLUMN gender TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='birth_date') THEN
+        ALTER TABLE members ADD COLUMN birth_date DATE;
+    END IF;
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_contact_name') THEN
         ALTER TABLE members ADD COLUMN emergency_contact_name TEXT;
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_contact_phone') THEN
         ALTER TABLE members ADD COLUMN emergency_contact_phone TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='join_date') THEN
+        ALTER TABLE members ADD COLUMN join_date DATE DEFAULT CURRENT_DATE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='monthly_fee') THEN
+        ALTER TABLE members ADD COLUMN monthly_fee INTEGER DEFAULT 3000;
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='blood_type') THEN
@@ -125,9 +150,14 @@ BEGIN
         ALTER TABLE members ADD COLUMN emergency_info TEXT;
     END IF;
 
-    -- Sessions: Add date if missing
+    -- SESSIONS Table Fixes
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='date') THEN
         ALTER TABLE sessions ADD COLUMN date DATE DEFAULT CURRENT_DATE;
+    END IF;
+
+    -- PAYMENTS Table Fixes
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='receipt_number') THEN
+        ALTER TABLE payments ADD COLUMN receipt_number TEXT UNIQUE;
     END IF;
 END $$;
 
@@ -174,5 +204,5 @@ DROP POLICY IF EXISTS "Allow All Access" ON coaches;
 DROP POLICY IF EXISTS "Allow All" ON coaches;
 CREATE POLICY "Allow All Access" ON coaches FOR ALL USING (true) WITH CHECK (true);
 
--- Final Cache Reload
+-- Reload Schema Cache for PostgREST
 NOTIFY pgrst, 'reload schema';
