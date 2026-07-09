@@ -97,17 +97,32 @@ CREATE TABLE IF NOT EXISTS coaches (
     status TEXT DEFAULT 'Active'
 );
 
--- 8. SCHEMA MIGRATION (Fix missing columns in existing tables)
+-- 8. COMPREHENSIVE SCHEMA MIGRATION (Fix all potential missing columns)
 DO $$ 
 BEGIN 
-    -- Members: Add blood_type if missing
+    -- Members Table Column Checks
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_contact_name') THEN
+        ALTER TABLE members ADD COLUMN emergency_contact_name TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_contact_phone') THEN
+        ALTER TABLE members ADD COLUMN emergency_contact_phone TEXT;
+    END IF;
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='blood_type') THEN
         ALTER TABLE members ADD COLUMN blood_type TEXT;
     END IF;
     
-    -- Members: Add jeton_id if missing
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='jeton_id') THEN
         ALTER TABLE members ADD COLUMN jeton_id TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='medical_notes') THEN
+        ALTER TABLE members ADD COLUMN medical_notes TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_info') THEN
+        ALTER TABLE members ADD COLUMN emergency_info TEXT;
     END IF;
 
     -- Sessions: Add date if missing
@@ -130,7 +145,7 @@ ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coaches ENABLE ROW LEVEL SECURITY;
 
--- Apply Public Access Policies
+-- Apply/Refresh Public Access Policies
 DROP POLICY IF EXISTS "Allow All Access" ON members;
 DROP POLICY IF EXISTS "Allow All" ON members;
 CREATE POLICY "Allow All Access" ON members FOR ALL USING (true) WITH CHECK (true);
@@ -158,3 +173,6 @@ CREATE POLICY "Allow All Access" ON sessions FOR ALL USING (true) WITH CHECK (tr
 DROP POLICY IF EXISTS "Allow All Access" ON coaches;
 DROP POLICY IF EXISTS "Allow All" ON coaches;
 CREATE POLICY "Allow All Access" ON coaches FOR ALL USING (true) WITH CHECK (true);
+
+-- Final Cache Reload
+NOTIFY pgrst, 'reload schema';
