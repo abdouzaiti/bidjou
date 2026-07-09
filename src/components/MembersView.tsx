@@ -48,28 +48,21 @@ export default function MembersView({
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Suspended' | 'Inactive'>('All');
-  const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
-  const [sortBy, setSortBy] = useState<'name' | 'joinDate' | 'membershipNo'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'membershipNo'>('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Form Field States
   const [formData, setFormData] = useState({
     name: '',
     photoUrl: '',
-    gender: 'Male' as 'Male' | 'Female',
     birthDate: '',
     phone: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
     address: '',
-    joinDate: new Date().toISOString().split('T')[0],
     status: 'Active' as 'Active' | 'Suspended' | 'Inactive',
     monthlyFee: 3000,
-    notes: '',
     medicalNotes: '',
     emergencyInfo: '',
-    jetonId: '',
-    bloodType: ''
+    jetonId: ''
   });
 
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
@@ -102,20 +95,14 @@ export default function MembersView({
     setFormData({
       name: '',
       photoUrl: '',
-      gender: 'Male',
       birthDate: '',
       phone: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
       address: '',
-      joinDate: new Date().toISOString().split('T')[0],
       status: 'Active',
       monthlyFee: 3000,
-      notes: '',
       medicalNotes: '',
       emergencyInfo: '',
-      jetonId: '',
-      bloodType: ''
+      jetonId: ''
     });
   };
 
@@ -125,16 +112,16 @@ export default function MembersView({
     if (!formData.name.trim()) return;
 
     if (isEditing && editingMemberId) {
-      onUpdateMember(editingMemberId, formData);
+      onUpdateMember(editingMemberId, formData as any);
       setIsEditing(false);
       setEditingMemberId(null);
     } else {
       // Photo Url Fallback to beautiful Unsplash random fit
-      const resolvedPhoto = formData.photoUrl.trim() || `https://images.unsplash.com/photo-${formData.gender === 'Female' ? '1544005313-94ddf0286df2' : '1507003211169-0a1dd7228f2d'}?q=80&w=250&auto=format&fit=crop`;
+      const resolvedPhoto = formData.photoUrl.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.name || 'Athlète')}`;
       onAddMember({
         ...formData,
         photoUrl: resolvedPhoto
-      });
+      } as any);
     }
 
     setIsFormOpen(false);
@@ -147,20 +134,14 @@ export default function MembersView({
     setFormData({
       name: member.name,
       photoUrl: member.photoUrl,
-      gender: member.gender,
       birthDate: member.birthDate,
       phone: member.phone,
-      emergencyContactName: member.emergencyContactName,
-      emergencyContactPhone: member.emergencyContactPhone,
       address: member.address,
-      joinDate: member.joinDate,
       status: member.status,
       monthlyFee: member.monthlyFee,
-      notes: member.notes,
       medicalNotes: member.medicalNotes,
       emergencyInfo: member.emergencyInfo,
-      jetonId: member.jetonId || '',
-      bloodType: member.bloodType || ''
+      jetonId: member.jetonId || ''
     });
     setIsFormOpen(true);
   };
@@ -173,14 +154,11 @@ export default function MembersView({
         member.membershipNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.phone.includes(searchTerm);
       const matchStatus = statusFilter === 'All' || member.status === statusFilter;
-      const matchGender = genderFilter === 'All' || member.gender === genderFilter;
-      return matchSearch && matchStatus && matchGender;
+      return matchSearch && matchStatus;
     })
     .sort((a, b) => {
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
-      } else if (sortBy === 'joinDate') {
-        return b.joinDate.localeCompare(a.joinDate);
       } else {
         return a.membershipNumber.localeCompare(b.membershipNumber);
       }
@@ -189,9 +167,9 @@ export default function MembersView({
   // Excel simulation download
   const handleExportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,N_Adherent,Nom,Genre,Date_Naissance,Telephone,Adresse,Statut,Cotisation_Mensuelle\n";
+    csvContent += "ID,N_Adherent,Nom,Date_Naissance,Telephone,Adresse,Statut,Cotisation_Mensuelle\n";
     members.forEach(m => {
-      csvContent += `"${m.id}","${m.membershipNumber}","${m.name}","${m.gender}","${m.birthDate}","${m.phone}","${m.address}","${m.status}",${m.monthlyFee}\n`;
+      csvContent += `"${m.id}","${m.membershipNumber}","${m.name}","${m.birthDate}","${m.phone}","${m.address}","${m.status}",${m.monthlyFee}\n`;
     });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -209,22 +187,16 @@ export default function MembersView({
     const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
     const simulatedMember = {
       name: randomName,
-      photoUrl: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1534528741775-53994a69daeb' : '1506794778202-cad84cf45f1d'}?q=80&w=250&auto=format&fit=crop`,
-      gender: Math.random() > 0.5 ? 'Male' as const : 'Female' as const,
+      photoUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(randomName)}`,
       birthDate: '1996-08-14',
       phone: '0555 12 34 56',
-      emergencyContactName: 'Famille ' + randomName.split(' ')[1],
-      emergencyContactPhone: '0550 99 88 77',
       address: 'Centre Ville, Oran',
-      joinDate: new Date().toISOString().split('T')[0],
       status: 'Active' as const,
       monthlyFee: 3000,
-      notes: 'Membre importé via fichier d\'intégration.',
       medicalNotes: 'Apte.',
-      emergencyInfo: 'R.A.S.',
-      bloodType: ['O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'][Math.floor(Math.random() * 8)]
+      emergencyInfo: 'R.A.S.'
     };
-    onAddMember(simulatedMember);
+    onAddMember(simulatedMember as any);
   };
 
   // Calculations for selected member in drawer
@@ -327,20 +299,6 @@ export default function MembersView({
             </select>
           </div>
 
-          {/* Gender filter */}
-          <div className="flex items-center gap-1">
-            <span className="text-slate-400">Genre :</span>
-            <select 
-              value={genderFilter} 
-              onChange={(e) => setGenderFilter(e.target.value as any)}
-              className="bg-transparent text-slate-700 font-bold focus:outline-hidden cursor-pointer"
-            >
-              <option value="All">Tous</option>
-              <option value="Male">Hommes</option>
-              <option value="Female">Femmes</option>
-            </select>
-          </div>
-
           {/* Sorting filter */}
           <div className="flex items-center gap-1 ml-auto">
             <span className="text-slate-400">Trier par :</span>
@@ -350,7 +308,6 @@ export default function MembersView({
               className="bg-transparent text-slate-700 font-bold focus:outline-hidden cursor-pointer"
             >
               <option value="name">Nom alphabétique</option>
-              <option value="joinDate">Date d'inscription</option>
               <option value="membershipNo">N° d'adhérent</option>
             </select>
           </div>
@@ -430,10 +387,6 @@ export default function MembersView({
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       <span>{member.phone}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Adhésion : {member.joinDate}</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -487,7 +440,6 @@ export default function MembersView({
                 <tr className="bg-slate-50/80 border-b border-slate-100">
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Adhérent</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Téléphone</th>
-                  <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Inscrit le</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Tarif Mensuel</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Statut</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
@@ -516,7 +468,6 @@ export default function MembersView({
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[10px] text-slate-400 capitalize">{member.gender === 'Male' ? 'Homme' : 'Femme'}</span>
                             {member.jetonId && (
                               <span className="text-[9px] font-mono text-bento-gold font-bold bg-bento-gold/5 border border-bento-gold/20 px-1 py-0.2 rounded-xs">
                                 🎫 {member.jetonId}
@@ -527,7 +478,6 @@ export default function MembersView({
                       </div>
                     </td>
                     <td className="p-4 text-xs text-slate-600 font-semibold">{member.phone}</td>
-                    <td className="p-4 text-xs text-slate-500 font-medium">{member.joinDate}</td>
                     <td className="p-4 text-xs text-slate-800 font-bold">{member.monthlyFee} {currency}</td>
                     <td className="p-4">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -641,7 +591,7 @@ export default function MembersView({
                           {selectedMember.status}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500">{selectedMember.gender === 'Male' ? 'Homme' : 'Femme'} • {selectedMember.birthDate}</p>
+                      <p className="text-xs text-slate-500">{selectedMember.birthDate}</p>
                       
                       <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
                         <span className="flex items-center gap-1">
@@ -656,61 +606,28 @@ export default function MembersView({
                     </div>
                   </div>
 
-                  {/* Two Column Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Urgences & Médical */}
-                    <div className="space-y-4 bg-rose-50/20 p-5 rounded-3xl border border-rose-100/30">
-                      <h4 className="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-rose-500" />
-                        Urgence & Médical
-                      </h4>
-                      <div className="space-y-2.5 text-xs text-slate-600">
-                        <div>
-                          <strong className="block text-slate-400">Contact d'urgence :</strong>
-                          <span className="font-semibold text-slate-800">{selectedMember.emergencyContactName}</span>
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Téléphone contact :</strong>
-                          <span className="font-semibold text-slate-800">{selectedMember.emergencyContactPhone}</span>
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Notes médicales :</strong>
-                          <span className="text-slate-700">{selectedMember.medicalNotes || 'Aucune contre-indication renseignée.'}</span>
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Informations d'urgence :</strong>
-                          <span className="text-slate-700 font-bold">{selectedMember.emergencyInfo || 'N/A'}</span>
-                        </div>
+                  {/* Club information - simplified section */}
+                  <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100">
+                    <h4 className="font-display font-bold text-slate-800 text-sm flex items-center gap-2 mb-3">
+                      <Activity className="w-4 h-4 text-blue-500" />
+                      Détails de l'adhérent
+                    </h4>
+                    <div className="space-y-2.5 text-xs text-slate-600">
+                      <div>
+                        <strong className="block text-slate-400">Badge RFID (Jeton ID) :</strong>
+                        {selectedMember.jetonId ? (
+                          <span className="font-mono text-bento-gold bg-bento-gold/10 border border-bento-gold/25 px-2 py-0.5 rounded font-bold text-xs inline-block mt-0.5">{selectedMember.jetonId}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">Aucun jeton lié</span>
+                        )}
                       </div>
-                    </div>
-
-                    {/* Informations du Club */}
-                    <div className="space-y-4 bg-slate-50/50 p-5 rounded-3xl border border-slate-100">
-                      <h4 className="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-blue-500" />
-                        Données d'inscription
-                      </h4>
-                      <div className="space-y-2.5 text-xs text-slate-600">
-                        <div>
-                          <strong className="block text-slate-400">Date d'inscription :</strong>
-                          <span className="font-semibold text-slate-800">{selectedMember.joinDate}</span>
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Badge RFID (Jeton ID) :</strong>
-                          {selectedMember.jetonId ? (
-                            <span className="font-mono text-bento-gold bg-bento-gold/10 border border-bento-gold/25 px-2 py-0.5 rounded font-bold text-xs inline-block mt-0.5">{selectedMember.jetonId}</span>
-                          ) : (
-                            <span className="text-slate-400 italic">Aucun jeton lié</span>
-                          )}
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Tarif de cotisation :</strong>
-                          <span className="font-bold text-slate-800">{selectedMember.monthlyFee} {currency} / mois</span>
-                        </div>
-                        <div>
-                          <strong className="block text-slate-400">Notes administratives :</strong>
-                          <span className="text-slate-700 italic">"{selectedMember.notes || 'Pas de remarques.'}"</span>
-                        </div>
+                      <div>
+                        <strong className="block text-slate-400">Tarif de cotisation :</strong>
+                        <span className="font-bold text-slate-800">{selectedMember.monthlyFee} {currency} / mois</span>
+                      </div>
+                      <div>
+                        <strong className="block text-slate-400">Notes médicales :</strong>
+                        <span className="text-slate-700">{selectedMember.medicalNotes || 'Aucune contre-indication renseignée.'}</span>
                       </div>
                     </div>
                   </div>
@@ -821,41 +738,6 @@ export default function MembersView({
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
                       />
-                    </div>
-
-                    {/* Groupe Sanguin */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Groupe Sanguin</label>
-                      <select 
-                        id="form-bloodtype-select"
-                        value={formData.bloodType}
-                        onChange={(e) => setFormData({...formData, bloodType: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        <option value="">Non spécifié</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                      </select>
-                    </div>
-
-                    {/* Gender */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Genre</label>
-                      <select 
-                        id="form-gender-select"
-                        value={formData.gender}
-                        onChange={(e) => setFormData({...formData, gender: e.target.value as any})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        <option value="Male">Homme (Male)</option>
-                        <option value="Female">Femme (Female)</option>
-                      </select>
                     </div>
 
                     {/* Birth Date */}
@@ -1075,32 +957,6 @@ export default function MembersView({
                       </div>
                     </div>
 
-                    {/* Urgence Name */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Nom Contact Urgence</label>
-                      <input 
-                        id="form-emergency-name-input"
-                        type="text" 
-                        placeholder="Ex: Ahmed Brahimi (Père)"
-                        value={formData.emergencyContactName}
-                        onChange={(e) => setFormData({...formData, emergencyContactName: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </div>
-
-                    {/* Urgence Phone */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Téléphone Contact Urgence</label>
-                      <input 
-                        id="form-emergency-phone-input"
-                        type="text" 
-                        placeholder="Ex: 0550 11 22 33"
-                        value={formData.emergencyContactPhone}
-                        onChange={(e) => setFormData({...formData, emergencyContactPhone: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </div>
-
                     {/* Medical Notes */}
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes Médicales / Contre-indications</label>
@@ -1114,7 +970,7 @@ export default function MembersView({
                     </div>
 
                     {/* Info Urgence Additionnelle */}
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-slate-600 mb-1.5">Autres Infos d'Urgence</label>
                       <input 
                         id="form-emergency-info-input"
@@ -1125,33 +981,7 @@ export default function MembersView({
                         className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
-
-                    {/* Join Date */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Date d'Inscription</label>
-                      <input 
-                        id="form-joindate-input"
-                        type="date" 
-                        value={formData.joinDate}
-                        onChange={(e) => setFormData({...formData, joinDate: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </div>
-
-                    {/* Notes Administrateur */}
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes administratives internes</label>
-                      <textarea 
-                        id="form-notes-input"
-                        placeholder="Remarques additionnelles..."
-                        value={formData.notes}
-                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 h-16"
-                      />
-                    </div>
-
                   </div>
-
                 </div>
 
                 {/* Footer Buttons */}
@@ -1172,7 +1002,6 @@ export default function MembersView({
                   </button>
                 </div>
               </form>
-
             </div>
           </div>
         </div>

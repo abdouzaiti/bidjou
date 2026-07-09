@@ -33,8 +33,6 @@ export default function ReportsView({
 
   // Calculations for Members Demographics Report
   const totalMembers = members.length;
-  const maleCount = members.filter(m => m.gender === 'Male').length;
-  const femaleCount = members.filter(m => m.gender === 'Female').length;
   const activeCount = members.filter(m => m.status === 'Active').length;
   const suspendedCount = members.filter(m => m.status === 'Suspended').length;
   const inactiveCount = members.filter(m => m.status === 'Inactive').length;
@@ -104,7 +102,6 @@ export default function ReportsView({
             <div class="card">
               <h3>Démographie</h3>
               <p>Total Adhérents : <strong>${totalMembers}</strong></p>
-              <p>Hommes : <strong>${maleCount}</strong> | Femmes : <strong>${femaleCount}</strong></p>
               <p>Âge moyen : <strong>${averageAge} ans</strong></p>
             </div>
             <div class="card">
@@ -118,9 +115,7 @@ export default function ReportsView({
             <thead>
               <tr>
                 <th>Nom</th>
-                <th>Genre</th>
                 <th>Téléphone</th>
-                <th>Date d'inscription</th>
                 <th>Statut</th>
               </tr>
             </thead>
@@ -128,9 +123,7 @@ export default function ReportsView({
               ${members.map(m => `
                 <tr>
                   <td><strong>${m.name}</strong></td>
-                  <td>${m.gender === 'Male' ? 'Homme' : 'Femme'}</td>
                   <td>${m.phone}</td>
-                  <td>${m.joinDate}</td>
                   <td>${m.status}</td>
                 </tr>
               `).join('')}
@@ -214,20 +207,14 @@ export default function ReportsView({
             </span>
             <div>
               <h3 className="font-display font-bold text-slate-800 text-base">Rapport Démographique Adhérents</h3>
-              <p className="text-xs text-slate-400 mt-1">Examinez l'analyse globale des membres : moyenne d'âge, répartition des genres et statuts d'adhésion.</p>
+              <p className="text-xs text-slate-400 mt-1">Examinez l'analyse globale des membres : moyenne d'âge et statuts d'adhésion.</p>
             </div>
 
             {/* Visual metrics breakdown */}
-            <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+            <div className="grid grid-cols-1 pt-2 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100/50">
                 <span className="text-slate-400 font-semibold block">Moyenne d'âge</span>
                 <span className="text-sm font-bold text-slate-700 font-display">{averageAge} ans</span>
-              </div>
-              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100/50">
-                <span className="text-slate-400 font-semibold block">Ratio Femmes</span>
-                <span className="text-sm font-bold text-slate-700 font-display">
-                  {totalMembers > 0 ? Math.round((femaleCount / totalMembers) * 100) : 0}%
-                </span>
               </div>
             </div>
           </div>

@@ -18,20 +18,14 @@ export interface Member {
   membershipNumber: string;
   name: string;
   photoUrl: string;
-  gender: 'Male' | 'Female';
   birthDate: string;
   phone: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
   address: string;
-  joinDate: string;
   status: 'Active' | 'Suspended' | 'Inactive';
   monthlyFee: number;
-  notes: string;
   medicalNotes: string;
   emergencyInfo: string;
   jetonId?: string;
-  bloodType?: string;
 }
 
 export interface Attendance {
@@ -74,8 +68,6 @@ export interface Coach {
   photoUrl: string;
   phone: string;
   email: string;
-  specialty: string;
-  experience: string;
   status: 'Active' | 'Inactive';
 }
 

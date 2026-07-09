@@ -147,20 +147,6 @@ export default function LoginView({ onLoginSuccess, settings, isLoading }: Login
           </div>
         </div>
 
-        {/* Hints */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-8 text-center"
-        >
-          <p className="text-[10px] text-slate-600 font-medium">
-            Accès Admin: <span className="text-slate-400">admin / admin</span>
-          </p>
-          <p className="text-[10px] text-slate-600 font-medium mt-1">
-            Accès Coach: <span className="text-slate-400">{settings.coachUsername || 'coach'} / {settings.coachPassword || 'password'}</span>
-          </p>
-        </motion.div>
       </motion.div>
     </div>
   );

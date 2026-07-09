@@ -32,20 +32,14 @@ export const supabaseService = {
       membershipNumber: m.membership_number,
       name: m.name,
       photoUrl: m.photo_url,
-      gender: m.gender,
       birthDate: m.birth_date,
       phone: m.phone,
-      emergencyContactName: m.emergency_contact_name,
-      emergencyContactPhone: m.emergency_contact_phone,
       address: m.address,
-      joinDate: m.join_date,
       status: m.status,
       monthlyFee: m.monthly_fee,
-      notes: m.notes,
       medicalNotes: m.medical_notes,
       emergencyInfo: m.emergency_info,
-      jetonId: m.jeton_id || '',
-      bloodType: m.blood_type || ''
+      jetonId: m.jeton_id || ''
     };
   },
 
@@ -56,20 +50,14 @@ export const supabaseService = {
         membership_number: member.membershipNumber,
         name: member.name,
         photo_url: member.photoUrl,
-        gender: member.gender,
         birth_date: member.birthDate,
         phone: member.phone,
-        emergency_contact_name: member.emergencyContactName,
-        emergency_contact_phone: member.emergencyContactPhone,
         address: member.address,
-        join_date: member.joinDate,
         status: member.status,
         monthly_fee: member.monthlyFee,
-        notes: member.notes,
         medical_notes: member.medicalNotes,
         emergency_info: member.emergencyInfo,
-        jeton_id: member.jetonId,
-        blood_type: member.bloodType
+        jeton_id: member.jetonId
       }])
       .select()
       .single();
@@ -86,20 +74,14 @@ export const supabaseService = {
     if (member.membershipNumber) updateData.membership_number = member.membershipNumber;
     if (member.name) updateData.name = member.name;
     if (member.photoUrl !== undefined) updateData.photo_url = member.photoUrl;
-    if (member.gender) updateData.gender = member.gender;
     if (member.birthDate) updateData.birth_date = member.birthDate;
     if (member.phone) updateData.phone = member.phone;
-    if (member.emergencyContactName) updateData.emergency_contact_name = member.emergencyContactName;
-    if (member.emergencyContactPhone) updateData.emergency_contact_phone = member.emergencyContactPhone;
     if (member.address) updateData.address = member.address;
-    if (member.joinDate) updateData.join_date = member.joinDate;
     if (member.status) updateData.status = member.status;
     if (member.monthlyFee !== undefined) updateData.monthly_fee = member.monthlyFee;
-    if (member.notes !== undefined) updateData.notes = member.notes;
     if (member.medicalNotes !== undefined) updateData.medical_notes = member.medicalNotes;
     if (member.emergencyInfo !== undefined) updateData.emergency_info = member.emergencyInfo;
     if (member.jetonId !== undefined) updateData.jeton_id = member.jetonId;
-    if (member.bloodType) updateData.blood_type = member.bloodType;
 
     const { error } = await supabase
       .from('members')
@@ -263,8 +245,6 @@ export const supabaseService = {
         photoUrl: c.photo_url,
         phone: c.phone,
         email: c.email,
-        specialty: c.specialty,
-        experience: c.experience,
         status: c.status
       }));
     } catch (e) {
@@ -281,8 +261,6 @@ export const supabaseService = {
         photo_url: coach.photoUrl,
         phone: coach.phone,
         email: coach.email,
-        specialty: coach.specialty,
-        experience: coach.experience,
         status: coach.status
       }])
       .select()
@@ -295,8 +273,6 @@ export const supabaseService = {
       photoUrl: data.photo_url,
       phone: data.phone,
       email: data.email,
-      specialty: data.specialty,
-      experience: data.experience,
       status: data.status
     };
   },

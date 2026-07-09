@@ -5,7 +5,8 @@
 
 import React, { useState } from 'react';
 import { 
-  Award, Mail, Phone, Plus, X, Edit, Trash2, Shield, Calendar, CheckCircle
+  Award, Mail, Phone, Plus, X, Edit, Trash2, Shield, Calendar, CheckCircle,
+  Upload, Image as ImageIcon
 } from 'lucide-react';
 import { Coach, Session } from '../types';
 
@@ -28,22 +29,45 @@ export default function CoachesView({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [specialty, setSpecialty] = useState('Ceinture Noire Judo');
-  const [experience, setExperience] = useState('10 ans');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
+
+  const handlePhotoUpload = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPhotoUrl(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingPhoto(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDraggingPhoto(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingPhoto(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handlePhotoUpload(e.dataTransfer.files[0]);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const resolvedPhoto = photoUrl.trim() || `https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1534528741775-53994a69daeb' : '1506794778202-cad84cf45f1d'}?q=80&w=250&auto=format&fit=crop`;
+    const resolvedPhoto = photoUrl.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || 'Entraîneur')}`;
 
     onAddCoach({
       name,
       phone,
       email,
-      specialty,
-      experience,
       photoUrl: resolvedPhoto,
       status: 'Active'
     });
@@ -107,22 +131,12 @@ export default function CoachesView({
                     />
                     <div>
                       <h4 className="font-display font-bold text-slate-800 text-sm">{coach.name}</h4>
-                      <span className="text-[10px] text-slate-400 font-mono font-bold block">{coach.experience} d'expérience</span>
                     </div>
                   </div>
 
                   <span className="text-[9px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
                     Actif
                   </span>
-                </div>
-
-                {/* Specialties list */}
-                <div className="space-y-2 bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100/30">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Spécialité Principale</span>
-                  <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <Award className="w-4 h-4 text-amber-500 shrink-0" />
-                    {coach.specialty}
-                  </p>
                 </div>
 
                 {/* Contact data info */}
@@ -205,34 +219,6 @@ export default function CoachesView({
                     />
                   </div>
 
-                  {/* Specialty */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Spécialité & Diplôme *</label>
-                    <input 
-                      id="form-coach-specialty-input"
-                      type="text" 
-                      required
-                      placeholder="Ex: Karaté Do Shotokan (5ème Dan)"
-                      value={specialty}
-                      onChange={(e) => setSpecialty(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden"
-                    />
-                  </div>
-
-                  {/* Experience */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Expérience professionnelle *</label>
-                    <input 
-                      id="form-coach-exp-input"
-                      type="text" 
-                      required
-                      placeholder="Ex: 12 ans d'enseignement"
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden"
-                    />
-                  </div>
-
                   {/* Phone & Email */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -262,17 +248,60 @@ export default function CoachesView({
                     </div>
                   </div>
 
-                  {/* Photo Url */}
+                  {/* Photo Upload */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Lien URL de la photo portrait (Optionnel)</label>
-                    <input 
-                      id="form-coach-photo-input"
-                      type="url" 
-                      placeholder="Laissez vide pour utiliser un avatar aléatoire"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden"
-                    />
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Photo de l'entraîneur (Optionnel)</label>
+                    <div 
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById('form-coach-photo-input')?.click()}
+                      className={`relative group cursor-pointer border-2 border-dashed rounded-3xl p-6 transition-all duration-300 flex flex-col items-center justify-center gap-3 ${
+                        isDraggingPhoto 
+                          ? 'border-bento-blue bg-bento-blue/5 scale-[0.98]' 
+                          : photoUrl 
+                            ? 'border-emerald-200 bg-emerald-50/30' 
+                            : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                      }`}
+                    >
+                      <input 
+                        id="form-coach-photo-input"
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => e.target.files && handlePhotoUpload(e.target.files[0])}
+                        className="hidden"
+                      />
+                      
+                      {photoUrl ? (
+                        <div className="relative">
+                          <img 
+                            src={photoUrl} 
+                            alt="Preview" 
+                            className="w-20 h-20 rounded-2xl object-cover shadow-sm border-2 border-white"
+                          />
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPhotoUrl('');
+                            }}
+                            className="absolute -top-2 -right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:scale-110 transition-transform"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="p-3 bg-white rounded-2xl shadow-xs group-hover:scale-110 transition-transform duration-300">
+                            <Upload className="w-5 h-5 text-slate-400" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[11px] font-bold text-slate-600">Glissez ou cliquez pour ajouter</p>
+                            <p className="text-[9px] text-slate-400">JPG, PNG (Format portrait recommandé)</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                 </div>

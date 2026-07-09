@@ -185,10 +185,6 @@ export function printMemberQRCard(member: Member) {
               <strong>Statut</strong>
               <span style="color: ${member.status === 'Active' ? '#10b981' : member.status === 'Suspended' ? '#f59e0b' : '#ef4444'}">${member.status}</span>
             </div>
-            <div class="footer-item">
-              <strong>Adhésion</strong>
-              <span>${member.joinDate}</span>
-            </div>
           </div>
         </div>
         <script>

@@ -219,7 +219,6 @@ export default function SessionsView({
                       />
                       <div>
                         <span className="text-xs font-bold text-slate-800 block">{coachObj.name}</span>
-                        <span className="text-[10px] text-slate-400 block">{coachObj.specialty}</span>
                       </div>
                     </div>
                   ) : (
@@ -329,7 +328,7 @@ export default function SessionsView({
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden cursor-pointer"
                     >
                       {coaches.map(c => (
-                        <option key={c.id} value={c.id}>{c.name} ({c.specialty})</option>
+                        <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
                   </div>
