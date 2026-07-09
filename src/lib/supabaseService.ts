@@ -44,8 +44,8 @@ export const supabaseService = {
       notes: m.notes,
       medicalNotes: m.medical_notes,
       emergencyInfo: m.emergency_info,
-      jetonId: m.jeton_id,
-      bloodType: m.blood_type
+      jetonId: m.jeton_id || '',
+      bloodType: m.blood_type || ''
     };
   },
 

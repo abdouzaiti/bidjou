@@ -1,4 +1,7 @@
--- 1. Create Tables (with IF NOT EXISTS)
+-- SQL Schema for Bijoux d'Oran Sport Club
+-- This script ensures all tables and columns exist.
+
+-- 1. Members Table
 CREATE TABLE IF NOT EXISTS members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     membership_number TEXT UNIQUE NOT NULL,
@@ -20,6 +23,7 @@ CREATE TABLE IF NOT EXISTS members (
     blood_type TEXT
 );
 
+-- 2. Settings Table
 CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY DEFAULT 1,
     club_name TEXT DEFAULT 'Bijoux d''Oran',
@@ -36,6 +40,7 @@ CREATE TABLE IF NOT EXISTS settings (
     CONSTRAINT single_row CHECK (id = 1)
 );
 
+-- 3. Attendance Table
 CREATE TABLE IF NOT EXISTS attendance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     member_id UUID REFERENCES members(id) ON DELETE CASCADE,
@@ -46,6 +51,7 @@ CREATE TABLE IF NOT EXISTS attendance (
     status TEXT
 );
 
+-- 4. Payments Table
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     member_id UUID REFERENCES members(id) ON DELETE CASCADE,
@@ -57,6 +63,7 @@ CREATE TABLE IF NOT EXISTS payments (
     receipt_number TEXT UNIQUE
 );
 
+-- 5. Expenses Table
 CREATE TABLE IF NOT EXISTS expenses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT,
@@ -66,6 +73,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     description TEXT
 );
 
+-- 6. Sessions Table
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -77,6 +85,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     capacity INTEGER
 );
 
+-- 7. Coaches Table
 CREATE TABLE IF NOT EXISTS coaches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -88,22 +97,40 @@ CREATE TABLE IF NOT EXISTS coaches (
     status TEXT DEFAULT 'Active'
 );
 
--- 2. Initialize Settings if empty
+-- 8. SCHEMA MIGRATION (Fix missing columns in existing tables)
+DO $$ 
+BEGIN 
+    -- Members: Add blood_type if missing
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='blood_type') THEN
+        ALTER TABLE members ADD COLUMN blood_type TEXT;
+    END IF;
+    
+    -- Members: Add jeton_id if missing
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='jeton_id') THEN
+        ALTER TABLE members ADD COLUMN jeton_id TEXT;
+    END IF;
+
+    -- Sessions: Add date if missing
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='date') THEN
+        ALTER TABLE sessions ADD COLUMN date DATE DEFAULT CURRENT_DATE;
+    END IF;
+END $$;
+
+-- 9. INITIALIZATION
 INSERT INTO settings (id, club_name, coach_username, coach_password)
 VALUES (1, 'Bijoux d''Oran', 'coach', 'password')
 ON CONFLICT (id) DO NOTHING;
 
--- 3. ENABLE PERMISSIONS (Crucial step)
--- This allows the application to interact with the tables
+-- 10. SECURITY & PERMISSIONS
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coaches ENABLE ROW LEVEL SECURITY;
 
--- Create "Allow All" policies (Public access for this specific project setup)
--- We drop them first to avoid "already exists" errors
+-- Apply Public Access Policies
 DROP POLICY IF EXISTS "Allow All Access" ON members;
 DROP POLICY IF EXISTS "Allow All" ON members;
 CREATE POLICY "Allow All Access" ON members FOR ALL USING (true) WITH CHECK (true);
