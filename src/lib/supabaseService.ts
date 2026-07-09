@@ -353,30 +353,39 @@ export const supabaseService = {
 
   // Settings
   async getSettings(): Promise<ClubSettings | null> {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116' || error.code === '42P01') return null;
-      throw error;
+      if (error) {
+        // Handle case where table is not yet in schema cache or doesn't exist
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.message.includes('schema cache')) {
+          console.warn('Settings table not ready or empty. Using defaults.');
+          return null;
+        }
+        throw error;
+      }
+
+      return {
+        clubName: data.club_name,
+        clubLogo: data.club_logo,
+        defaultMonthlyFee: data.default_monthly_fee,
+        currency: data.currency,
+        language: data.language,
+        theme: data.theme,
+        coachUsername: data.coach_username,
+        coachPassword: data.coach_password,
+        coachName: data.coach_name,
+        coachPhoto: data.coach_photo,
+        requireCoachPassword: data.require_coach_password
+      };
+    } catch (e) {
+      console.error("Critical Failure in getSettings:", e);
+      return null;
     }
-
-    return {
-      clubName: data.club_name,
-      clubLogo: data.club_logo,
-      defaultMonthlyFee: data.default_monthly_fee,
-      currency: data.currency,
-      language: data.language,
-      theme: data.theme,
-      coachUsername: data.coach_username,
-      coachPassword: data.coach_password,
-      coachName: data.coach_name,
-      coachPhoto: data.coach_photo,
-      requireCoachPassword: data.require_coach_password
-    };
   },
 
   async updateSettings(settings: Partial<ClubSettings>): Promise<void> {
