@@ -25,6 +25,7 @@ import {
   resetStoredData
 } from './utils/mockData';
 import { supabaseService } from './lib/supabaseService';
+import { supabase } from './lib/supabase';
 import { getTranslation } from './utils/translations';
 
 // Subcomponents
@@ -118,11 +119,29 @@ export default function App() {
       setIsLoadingData(true);
       if (isSupabaseConfigured) {
         try {
-          // 1. Load Settings first to ensure login works
+          // 1. Verify connection first
+          const isConnected = await supabaseService.testConnection();
+          
+          if (!isConnected) {
+            console.warn("Supabase connection test failed. Using local storage.");
+            setIsSupabaseOnline(false);
+            loadFromLocal();
+            // Try to see if it's a "table not found" error to warn the user
+            const { error } = await supabase.from('members').select('id').limit(1);
+            if (error && (error.code === '42P01' || error.message.includes('schema cache'))) {
+              triggerNotification('SQL Requis', 'Tables manquantes dans Supabase. Exécutez le script SQL fourni dans les réglages.', 'Alert');
+            }
+            setIsLoadingData(false);
+            return;
+          }
+
+          setIsSupabaseOnline(true);
+
+          // 2. Load Settings
           const sett = await supabaseService.getSettings();
           if (sett) setSettings(sett);
 
-          // 2. Load other data in parallel, but handle each one individually
+          // 3. Load other data in parallel, but handle each one individually
           const results = await Promise.allSettled([
             supabaseService.getMembers(),
             supabaseService.getPayments(),
@@ -139,19 +158,16 @@ export default function App() {
           if (results[4].status === 'fulfilled') setExpenses(results[4].value);
           if (results[5].status === 'fulfilled') setAttendance(results[5].value);
 
-          // Check if any failed
+          // Check if any failed due to schema issues
           const failures = results.filter(r => r.status === 'rejected');
           if (failures.length > 0) {
             const errorMsg = (failures[0] as PromiseRejectedResult).reason?.message || 'Erreur de table';
             console.error("Some tables failed to load:", errorMsg);
-            triggerNotification('Avertissement Base', `Certaines données n'ont pas pu être chargées: ${errorMsg}`, 'Alert');
+            triggerNotification('Avertissement Base', `Certaines tables ne sont pas encore prêtes. Exécutez le script SQL dans Supabase.`, 'Alert');
           }
-
-          setIsSupabaseOnline(true);
         } catch (error: any) {
-          console.error("Supabase Connection Error:", error.message || error);
+          console.error("Supabase Initialization Error:", error.message || error);
           setIsSupabaseOnline(false);
-          triggerNotification('Erreur Supabase', `Connexion impossible: ${error.message}`, 'Alert');
           loadFromLocal();
         }
       } else {
@@ -182,33 +198,38 @@ export default function App() {
   const handleAddMember = async (newMember: Omit<Member, 'id' | 'membershipNumber'>) => {
     const membershipNumber = `BJO-2026-${String(members.length + 1).padStart(3, '0')}`;
     
-    if (isSupabaseConfigured && isSupabaseOnline) {
-      try {
-        const fresh = await supabaseService.addMember({ ...newMember, membershipNumber });
-        setMembers([fresh, ...members]);
-        triggerNotification('Succès Sync', `L'athlète ${newMember.name} a été enregistré dans le cloud.`, 'Announcement');
-      } catch (error: any) {
-        console.error("Error adding member to Supabase:", error);
-        triggerNotification('Erreur Sync', `Impossible d'ajouter à Supabase: ${error.message || 'Erreur inconnue'}`, 'Alert');
-        // Fallback local en cas d'erreur ponctuelle
-        const fresh: Member = { ...newMember, id: `member-${Date.now()}`, membershipNumber };
-        setMembers([fresh, ...members]);
-      }
-    } else {
-      const fresh: Member = {
-        ...newMember,
-        id: `member-${Date.now()}`,
-        membershipNumber
-      };
-      const updated = [fresh, ...members];
-      setMembers(updated);
-      saveMembers(updated);
-      if (isSupabaseConfigured && !isSupabaseOnline) {
-        triggerNotification('Mode Local', 'Données enregistrées localement (Mode hors-ligne).', 'Alert');
+    // If Supabase is configured, we SHOULD try to save to Cloud first
+    if (isSupabaseConfigured) {
+      if (isSupabaseOnline) {
+        try {
+          const fresh = await supabaseService.addMember({ ...newMember, membershipNumber });
+          setMembers([fresh, ...members]);
+          triggerNotification('Succès Cloud', `L'athlète ${newMember.name} a été enregistré dans votre base de données Supabase.`, 'Announcement');
+          return;
+        } catch (error: any) {
+          console.error("Critical Supabase insert failure:", error);
+          triggerNotification('Échec Cloud', `Erreur critique: ${error.message}. L'enregistrement a été basculé en local.`, 'Alert');
+          // Fallback to local on error
+        }
+      } else {
+        // Supabase is configured but currently OFFLINE
+        triggerNotification('Mode Hors-Ligne', 'Supabase est déconnecté. Enregistrement en mode local (non synchronisé).', 'Alert');
       }
     }
 
-    triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès.`, 'Announcement');
+    // Local Storage Fallback
+    const fresh: Member = {
+      ...newMember,
+      id: `member-${Date.now()}`,
+      membershipNumber
+    };
+    const updated = [fresh, ...members];
+    setMembers(updated);
+    saveMembers(updated);
+    
+    if (!isSupabaseConfigured) {
+      triggerNotification('Nouveau Membre', `L'athlète ${newMember.name} a été inscrit avec succès (Local).`, 'Announcement');
+    }
   };
 
   const handleUpdateMember = async (id: string, updatedFields: Partial<Member>) => {
@@ -885,9 +906,24 @@ export default function App() {
               <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">
                 {settings.coachName || 'Coach'}
               </p>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
-                <p className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest leading-none">Connecté</p>
+              <div className="flex flex-col gap-1.5 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <p className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest leading-none">Connecté</p>
+                </div>
+                
+                {isSupabaseConfigured && (
+                  <div className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded border ${
+                    isSupabaseOnline 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                  }`}>
+                    <div className={`w-1 h-1 rounded-full ${isSupabaseOnline ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}`} />
+                    <span className="text-[7px] font-black uppercase tracking-tighter">
+                      {isSupabaseOnline ? 'Cloud Live' : 'Cloud Off'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <button 

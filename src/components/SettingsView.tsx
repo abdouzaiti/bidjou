@@ -321,16 +321,33 @@ export default function SettingsView({
                 <div className="mt-2 p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-2">
                   <p className="font-bold text-[10px] uppercase text-rose-800">Migration de Base de Données :</p>
                   <p className="text-[9px] text-rose-700 leading-relaxed">
-                    Si vous voyez des erreurs comme "column does not exist", copiez le contenu du fichier <strong>supabase_schema.sql</strong> et exécutez-le dans le <strong>SQL Editor</strong> de votre tableau de bord Supabase.
+                    Si vous voyez des erreurs comme "column does not exist" ou "table not found", exécutez le script SQL ci-dessous dans votre tableau de bord Supabase.
                   </p>
-                  <button 
-                    onClick={() => {
-                      window.open('https://supabase.com/dashboard/project/_/sql', '_blank');
-                    }}
-                    className="w-full py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-bold hover:bg-rose-700 transition-colors"
-                  >
-                    Ouvrir SQL Editor Supabase
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => {
+                        window.open('https://supabase.com/dashboard/project/_/sql', '_blank');
+                      }}
+                      className="w-full py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-bold hover:bg-rose-700 transition-colors"
+                    >
+                      1. Ouvrir SQL Editor Supabase
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/supabase_schema.sql');
+                          const text = await response.text();
+                          await navigator.clipboard.writeText(text);
+                          alert('Script SQL copié ! Collez-le dans Supabase et cliquez sur RUN.');
+                        } catch (err) {
+                          alert('Erreur lors de la copie du script.');
+                        }
+                      }}
+                      className="w-full py-1.5 bg-white border border-rose-200 text-rose-600 rounded-lg text-[9px] font-bold hover:bg-rose-50 transition-colors"
+                    >
+                      2. Copier le Script SQL complet
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

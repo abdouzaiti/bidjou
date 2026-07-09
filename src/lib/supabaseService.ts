@@ -447,6 +447,22 @@ export const supabaseService = {
     }
   },
 
+  // Connection Test
+  async testConnection(): Promise<boolean> {
+    try {
+      // Just try to fetch one row from members to see if it works
+      const { error } = await supabase.from('members').select('id').limit(1);
+      if (error) {
+        console.error("Supabase testConnection failed:", error);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error("Supabase testConnection exception:", e);
+      return false;
+    }
+  },
+
   mapAttendance(a: any): Attendance {
     return {
       id: a.id,

@@ -507,7 +507,14 @@ export default function MembersView({
                           }}
                         />
                         <div>
-                          <span className="text-xs font-bold text-slate-800 block">{member.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-800 block">{member.name}</span>
+                            {member.id.length > 25 ? (
+                              <span className="text-[7px] font-black text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-100 uppercase">Cloud</span>
+                            ) : (
+                              <span className="text-[7px] font-black text-rose-500 bg-rose-50 px-1 py-0.2 rounded border border-rose-100 uppercase">Local</span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[10px] text-slate-400 capitalize">{member.gender === 'Male' ? 'Homme' : 'Femme'}</span>
                             {member.jetonId && (
