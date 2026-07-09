@@ -118,6 +118,10 @@ BEGIN
         ALTER TABLE members ADD COLUMN birth_date DATE;
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='phone') THEN
+        ALTER TABLE members ADD COLUMN phone TEXT;
+    END IF;
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_contact_name') THEN
         ALTER TABLE members ADD COLUMN emergency_contact_name TEXT;
     END IF;
@@ -126,20 +130,24 @@ BEGIN
         ALTER TABLE members ADD COLUMN emergency_contact_phone TEXT;
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='address') THEN
+        ALTER TABLE members ADD COLUMN address TEXT;
+    END IF;
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='join_date') THEN
         ALTER TABLE members ADD COLUMN join_date DATE DEFAULT CURRENT_DATE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='status') THEN
+        ALTER TABLE members ADD COLUMN status TEXT DEFAULT 'Active';
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='monthly_fee') THEN
         ALTER TABLE members ADD COLUMN monthly_fee INTEGER DEFAULT 3000;
     END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='blood_type') THEN
-        ALTER TABLE members ADD COLUMN blood_type TEXT;
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='jeton_id') THEN
-        ALTER TABLE members ADD COLUMN jeton_id TEXT;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='notes') THEN
+        ALTER TABLE members ADD COLUMN notes TEXT;
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='medical_notes') THEN
@@ -148,6 +156,14 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='emergency_info') THEN
         ALTER TABLE members ADD COLUMN emergency_info TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='jeton_id') THEN
+        ALTER TABLE members ADD COLUMN jeton_id TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='blood_type') THEN
+        ALTER TABLE members ADD COLUMN blood_type TEXT;
     END IF;
 
     -- SESSIONS Table Fixes
