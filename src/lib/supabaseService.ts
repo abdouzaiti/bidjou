@@ -120,17 +120,22 @@ export const supabaseService = {
 
   // Payments
   async getPayments(): Promise<Payment[]> {
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .order('date', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .order('date', { ascending: false });
 
-    if (error) {
-      if (error.code === '42P01') return [];
-      throw error;
+      if (error) {
+        if (error.code === '42P01' || error.message.includes('schema cache')) return [];
+        throw error;
+      }
+
+      return (data || []).map(p => this.mapPayment(p));
+    } catch (e) {
+      console.error("Failed to load payments:", e);
+      return [];
     }
-
-    return (data || []).map(p => this.mapPayment(p));
   },
 
   mapPayment(p: any): Payment {
@@ -240,24 +245,32 @@ export const supabaseService = {
 
   // Coaches
   async getCoaches(): Promise<Coach[]> {
-    const { data, error } = await supabase
-      .from('coaches')
-      .select('*');
+    try {
+      const { data, error } = await supabase
+        .from('coaches')
+        .select('*');
 
-    if (error) {
-      if (error.code === '42P01') return [];
-      throw error;
+      if (error) {
+        if (error.code === '42P01' || error.message.includes('schema cache')) {
+          console.warn('Coaches table not ready or missing.');
+          return [];
+        }
+        throw error;
+      }
+      return (data || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        photoUrl: c.photo_url,
+        phone: c.phone,
+        email: c.email,
+        specialty: c.specialty,
+        experience: c.experience,
+        status: c.status
+      }));
+    } catch (e) {
+      console.error("Failed to load coaches:", e);
+      return [];
     }
-    return (data || []).map(c => ({
-      id: c.id,
-      name: c.name,
-      photoUrl: c.photo_url,
-      phone: c.phone,
-      email: c.email,
-      specialty: c.specialty,
-      experience: c.experience,
-      status: c.status
-    }));
   },
 
   async addCoach(coach: Omit<Coach, 'id'>): Promise<Coach> {
@@ -299,23 +312,28 @@ export const supabaseService = {
 
   // Expenses
   async getExpenses(): Promise<Expense[]> {
-    const { data, error } = await supabase
-      .from('expenses')
-      .select('*')
-      .order('date', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
 
-    if (error) {
-      if (error.code === '42P01') return [];
-      throw error;
+      if (error) {
+        if (error.code === '42P01' || error.message.includes('schema cache')) return [];
+        throw error;
+      }
+      return (data || []).map(e => ({
+        id: e.id,
+        title: e.title,
+        amount: e.amount,
+        category: e.category,
+        date: e.date,
+        description: e.description
+      }));
+    } catch (e) {
+      console.error("Failed to load expenses:", e);
+      return [];
     }
-    return (data || []).map(e => ({
-      id: e.id,
-      title: e.title,
-      amount: e.amount,
-      category: e.category,
-      date: e.date,
-      description: e.description
-    }));
   },
 
   async addExpense(expense: Omit<Expense, 'id'>): Promise<Expense> {
@@ -411,17 +429,22 @@ export const supabaseService = {
 
   // Attendance
   async getAttendance(): Promise<Attendance[]> {
-    const { data, error } = await supabase
-      .from('attendance')
-      .select('*')
-      .order('date', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .order('date', { ascending: false });
 
-    if (error) {
-      if (error.code === '42P01') return [];
-      throw error;
+      if (error) {
+        if (error.code === '42P01' || error.message.includes('schema cache')) return [];
+        throw error;
+      }
+
+      return (data || []).map(a => this.mapAttendance(a));
+    } catch (e) {
+      console.error("Failed to load attendance:", e);
+      return [];
     }
-
-    return (data || []).map(a => this.mapAttendance(a));
   },
 
   mapAttendance(a: any): Attendance {

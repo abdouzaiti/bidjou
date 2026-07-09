@@ -77,6 +77,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     capacity INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS coaches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    photo_url TEXT,
+    phone TEXT,
+    email TEXT,
+    specialty TEXT,
+    experience TEXT,
+    status TEXT DEFAULT 'Active'
+);
+
 -- 2. Initialize Settings if empty
 INSERT INTO settings (id, club_name, coach_username, coach_password)
 VALUES (1, 'Bijoux d''Oran', 'coach', 'password')
@@ -116,3 +127,7 @@ CREATE POLICY "Allow All Access" ON expenses FOR ALL USING (true) WITH CHECK (tr
 DROP POLICY IF EXISTS "Allow All Access" ON sessions;
 DROP POLICY IF EXISTS "Allow All" ON sessions;
 CREATE POLICY "Allow All Access" ON sessions FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON coaches;
+DROP POLICY IF EXISTS "Allow All" ON coaches;
+CREATE POLICY "Allow All Access" ON coaches FOR ALL USING (true) WITH CHECK (true);
