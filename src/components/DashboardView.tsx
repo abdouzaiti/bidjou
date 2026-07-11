@@ -136,7 +136,7 @@ export default function DashboardView({
       </div>
 
       {/* Stats Bento Grid KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* KPI 1: Active Members */}
         <div 
           id="kpi-members"
@@ -147,34 +147,6 @@ export default function DashboardView({
           <div className="flex items-end justify-between">
             <span className="text-3xl font-bold text-bento-blue">{totalMembersCount}</span>
             <span className="text-xs text-green-500 font-bold bg-green-50 px-2.5 py-1 rounded-md">+{activeMembersCount} actifs</span>
-          </div>
-        </div>
-
-        {/* KPI 2: Present Today */}
-        <div 
-          id="kpi-attendance"
-          onClick={() => onNavigate('attendance')}
-          className="group cursor-pointer bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-32"
-        >
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('present_today')}</span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-bento-blue">{presentTodayCount}</span>
-            <span className="text-xs text-bento-blue font-bold bg-bento-blue/5 px-2.5 py-1 rounded-md">/ {activeMembersCount} attendus</span>
-          </div>
-        </div>
-
-        {/* KPI 3: Monthly Income */}
-        <div 
-          id="kpi-income"
-          onClick={() => onNavigate('payments')}
-          className="group cursor-pointer bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-32"
-        >
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('monthly_income')}</span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-bento-blue">
-              {monthlyIncome.toLocaleString()} <span className="text-xs font-semibold text-gray-400">{currency}</span>
-            </span>
-            <span className="text-xs text-bento-gold font-bold bg-bento-gold/5 px-2.5 py-1 rounded-md">Juillet</span>
           </div>
         </div>
 

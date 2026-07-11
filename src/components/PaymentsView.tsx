@@ -106,11 +106,17 @@ export default function PaymentsView({
 
   // Direct checkout trigger from outstanding list
   const triggerQuickPay = (member: Member) => {
-    setSelectedMemberId(member.id);
-    setAmount(member.monthlyFee);
-    setMonth(monthFilter);
-    setYear(yearFilter);
-    setIsFormOpen(true);
+    // We'll perform the payment directly for the current filter month
+    onRecordPayment({
+      memberId: member.id,
+      amount: member.monthlyFee,
+      month: monthFilter,
+      year: yearFilter,
+      date: new Date().toISOString().split('T')[0],
+      paymentMethod: 'Cash',
+      reference: 'Paiement Rapide',
+      notes: `Cotisation de ${monthFilter} ${yearFilter} réglée via le bouton rapide.`
+    });
   };
 
   // Printable receipt helper
@@ -232,8 +238,9 @@ export default function PaymentsView({
               onChange={(e) => setMonthFilter(e.target.value)}
               className="text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 cursor-pointer focus:outline-hidden"
             >
-              <option value="Juin">Juin</option>
-              <option value="Juillet">Juillet</option>
+              {['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
             </select>
           </div>
 
@@ -355,9 +362,11 @@ export default function PaymentsView({
                       <td className="p-3 font-mono text-[11px] text-slate-500">{p.receiptNumber}</td>
                       <td className="p-3 text-slate-600 font-medium">{p.month} {p.year}</td>
                       <td className="p-3">
-                        <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-xs">
-                          {p.paymentMethod}
-                        </span>
+                        <div className="flex items-center">
+                          <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-xs">
+                            {p.paymentMethod === 'Cash' ? 'Espèces' : p.paymentMethod === 'Card' ? 'Carte CIB' : 'Virement'}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-3 font-bold text-emerald-600 font-mono">+{p.amount.toLocaleString()} {currency}</td>
                       <td className="p-3 text-right">

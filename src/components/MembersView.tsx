@@ -480,13 +480,15 @@ export default function MembersView({
                     <td className="p-4 text-xs text-slate-600 font-semibold">{member.phone}</td>
                     <td className="p-4 text-xs text-slate-800 font-bold">{member.monthlyFee} {currency}</td>
                     <td className="p-4">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        member.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
-                        member.status === 'Suspended' ? 'bg-amber-50 text-amber-700' :
-                        'bg-slate-50 text-slate-600'
-                      }`}>
-                        {member.status}
-                      </span>
+                      <div className="flex items-center">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          member.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                          member.status === 'Suspended' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                          'bg-slate-50 text-slate-600 border border-slate-100'
+                        }`}>
+                          {member.status === 'Active' ? 'Actif' : member.status === 'Suspended' ? 'Suspendu' : 'Inactif'}
+                        </span>
+                      </div>
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
