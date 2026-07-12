@@ -292,7 +292,8 @@ export default function App() {
           sessionId,
           coachId: activeRole === 'Coach' ? 'coach-bidjou' : 'admin' // default or active coach
         });
-        setAttendance([fresh, ...attendance]);
+        const filtered = attendance.filter(a => !(a.memberId === memberId && a.date === todayStr && a.sessionId === sessionId));
+        setAttendance([fresh, ...filtered]);
       } catch (error) {
         console.error("Error recording attendance in Supabase:", error);
       }

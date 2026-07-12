@@ -36,6 +36,8 @@ export default function AttendanceView({
   setQuickOpenScanner,
   onUpdateMember
 }: AttendanceViewProps) {
+  const todayStr = '2026-07-07';
+  
   // Tabs: Terminal Scanner or Manual pointage or Calendar History
   const [activeTab, setActiveTab] = useState<'scanner' | 'manual' | 'calendar'>('scanner');
   const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id || '');
@@ -106,7 +108,6 @@ export default function AttendanceView({
     setScannedMember(memberObj);
 
     // Check if already checked in today
-    const todayStr = '2026-07-07';
     const isAlreadyPresent = attendance.some(
       a => a.memberId === memberId && a.date === todayStr && a.sessionId === selectedSessionId
     );
@@ -176,7 +177,6 @@ export default function AttendanceView({
   };
 
   // Calculations for list of active members with status today
-  const todayStr = '2026-07-07';
   const todayAttendances = attendance.filter(a => a.date === todayStr && a.sessionId === selectedSessionId);
   
   // Create a dictionary of today's attendance for quick lookup

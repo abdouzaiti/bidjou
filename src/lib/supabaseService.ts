@@ -452,6 +452,14 @@ export const supabaseService = {
   },
 
   async recordAttendance(attendance: Omit<Attendance, 'id'>): Promise<Attendance> {
+    // Delete any existing attendance record for this member on this date and session
+    await supabase
+      .from('attendance')
+      .delete()
+      .eq('member_id', attendance.memberId)
+      .eq('date', attendance.date)
+      .eq('session_id', attendance.sessionId);
+
     const { data, error } = await supabase
       .from('attendance')
       .insert([{
