@@ -33,6 +33,17 @@ export default function SessionsView({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<Session | null>(sessions[0] || null);
 
+  // Auto-select first session when sessions are loaded or updated
+  React.useEffect(() => {
+    if (sessions.length > 0) {
+      if (!selectedSession || !sessions.some(s => s.id === selectedSession.id)) {
+        setSelectedSession(sessions[0]);
+      }
+    } else {
+      setSelectedSession(null);
+    }
+  }, [sessions, selectedSession]);
+
   // Form states
   const [title, setTitle] = useState('');
   const [coachId, setCoachId] = useState(coaches[0]?.id || '');

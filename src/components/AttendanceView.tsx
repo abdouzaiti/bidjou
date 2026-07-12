@@ -43,6 +43,15 @@ export default function AttendanceView({
   const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id || '');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Set initial selected session when sessions list loads or changes
+  useEffect(() => {
+    if (sessions.length > 0) {
+      if (!selectedSessionId || !sessions.some(s => s.id === selectedSessionId)) {
+        setSelectedSessionId(sessions[0].id);
+      }
+    }
+  }, [sessions, selectedSessionId]);
+
   // Scanner Simulator States
   const [scannedMemberId, setScannedMemberId] = useState<string>('');
   const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error' | 'already'>('idle');
@@ -209,15 +218,47 @@ export default function AttendanceView({
   return (
     <div className="space-y-6">
       {/* Upper bar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-xs">
         <div>
-          <h2 className="text-2xl font-display font-bold text-bento-blue">Pointage des Athlètes</h2>
+          <h2 className="text-xl font-display font-bold text-bento-blue">Pointage des Athlètes</h2>
           <p className="text-xs text-slate-500">
             Enregistrez les présences par scanner de cartes QR ou via la console de recherche manuelle.
           </p>
         </div>
 
+        {/* Dynamic Séance selector */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-100 px-3.5 py-2 rounded-2xl">
+            <Calendar className="w-4 h-4 text-bento-gold shrink-0" />
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Séance active</span>
+              <select
+                id="select-session-attendance"
+                value={selectedSessionId}
+                onChange={(e) => setSelectedSessionId(e.target.value)}
+                className="text-xs font-bold text-bento-blue bg-transparent focus:outline-hidden cursor-pointer"
+              >
+                {sessions.length === 0 ? (
+                  <option value="">Aucune séance disponible</option>
+                ) : (
+                  sessions.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.title} ({s.time})
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
 
+          {/* Show details of selected session if available */}
+          {sessions.find(s => s.id === selectedSessionId) && (
+            <div className="hidden md:flex flex-col text-xs text-slate-500 bg-slate-50/50 border border-slate-100/50 px-3 py-1.5 rounded-xl text-left">
+              <span className="font-semibold text-slate-700">📍 {sessions.find(s => s.id === selectedSessionId)?.location}</span>
+              <span className="text-[10px] text-slate-400">Heure: {sessions.find(s => s.id === selectedSessionId)?.time}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mode navigation */}
