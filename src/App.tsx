@@ -390,6 +390,22 @@ export default function App() {
     }
   };
 
+  const handleUpdateSession = async (id: string, updates: Partial<Omit<Session, 'id'>>) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.updateSession(id, updates);
+        setSessions(sessions.map(s => s.id === id ? { ...s, ...updates } : s));
+      } catch (error: any) {
+        console.error("Error updating session in Supabase:", error);
+        triggerNotification('Erreur de mise à jour', `Impossible de modifier la séance : ${error.message || 'Erreur inconnue'}`, 'Alert');
+      }
+    } else {
+      const updated = sessions.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSessions(updated);
+      saveSessions(updated);
+    }
+  };
+
   const handleDeleteSession = async (id: string) => {
     if (isSupabaseConfigured) {
       try {
@@ -688,6 +704,7 @@ export default function App() {
             attendance={attendance}
             t={t}
             onAddSession={handleAddSession}
+            onUpdateSession={handleUpdateSession}
             onDeleteSession={handleDeleteSession}
           />
         );

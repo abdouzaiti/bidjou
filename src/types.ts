@@ -26,6 +26,7 @@ export interface Member {
   medicalNotes: string;
   emergencyInfo: string;
   jetonId?: string;
+  gender?: 'Homme' | 'Femme';
 }
 
 export interface Attendance {

@@ -171,6 +171,22 @@ BEGIN
         ALTER TABLE sessions ADD COLUMN date DATE DEFAULT CURRENT_DATE;
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='time') THEN
+        ALTER TABLE sessions ADD COLUMN time TIME;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='description') THEN
+        ALTER TABLE sessions ADD COLUMN description TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='location') THEN
+        ALTER TABLE sessions ADD COLUMN location TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='capacity') THEN
+        ALTER TABLE sessions ADD COLUMN capacity INTEGER DEFAULT 20;
+    END IF;
+
     -- PAYMENTS Table Fixes
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='receipt_number') THEN
         ALTER TABLE payments ADD COLUMN receipt_number TEXT UNIQUE;

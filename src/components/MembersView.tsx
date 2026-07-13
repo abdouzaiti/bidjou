@@ -62,7 +62,8 @@ export default function MembersView({
     monthlyFee: 3000,
     medicalNotes: '',
     emergencyInfo: '',
-    jetonId: ''
+    jetonId: '',
+    gender: 'Homme' as 'Homme' | 'Femme'
   });
 
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
@@ -102,7 +103,8 @@ export default function MembersView({
       monthlyFee: 3000,
       medicalNotes: '',
       emergencyInfo: '',
-      jetonId: ''
+      jetonId: '',
+      gender: 'Homme'
     });
   };
 
@@ -141,7 +143,8 @@ export default function MembersView({
       monthlyFee: member.monthlyFee,
       medicalNotes: member.medicalNotes,
       emergencyInfo: member.emergencyInfo,
-      jetonId: member.jetonId || ''
+      jetonId: member.jetonId || '',
+      gender: member.gender || 'Homme'
     });
     setIsFormOpen(true);
   };
@@ -167,9 +170,9 @@ export default function MembersView({
   // Excel simulation download
   const handleExportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,N_Adherent,Nom,Date_Naissance,Telephone,Adresse,Statut,Cotisation_Mensuelle\n";
+    csvContent += "ID,N_Adherent,Nom,Sexe,Date_Naissance,Telephone,Adresse,Statut,Cotisation_Mensuelle\n";
     members.forEach(m => {
-      csvContent += `"${m.id}","${m.membershipNumber}","${m.name}","${m.birthDate}","${m.phone}","${m.address}","${m.status}",${m.monthlyFee}\n`;
+      csvContent += `"${m.id}","${m.membershipNumber}","${m.name}","${m.gender || 'Homme'}","${m.birthDate}","${m.phone}","${m.address}","${m.status}",${m.monthlyFee}\n`;
     });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -194,7 +197,8 @@ export default function MembersView({
       status: 'Active' as const,
       monthlyFee: 3000,
       medicalNotes: 'Apte.',
-      emergencyInfo: 'R.A.S.'
+      emergencyInfo: 'R.A.S.',
+      gender: randomName.includes('Karima') ? 'Femme' : 'Homme'
     };
     onAddMember(simulatedMember as any);
   };
@@ -587,6 +591,11 @@ export default function MembersView({
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                         <h4 className="text-lg font-display font-bold text-slate-800">{selectedMember.name}</h4>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          selectedMember.gender === 'Femme' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700'
+                        }`}>
+                          {selectedMember.gender || 'Homme'}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           selectedMember.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
                           selectedMember.status === 'Suspended' ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-600'
                         }`}>
@@ -767,6 +776,21 @@ export default function MembersView({
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                         className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
                       />
+                    </div>
+
+                    {/* Sexe (Gender) */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1.5">Sexe *</label>
+                      <select 
+                        id="form-gender-select"
+                        required
+                        value={formData.gender}
+                        onChange={(e) => setFormData({...formData, gender: e.target.value as any})}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                      </select>
                     </div>
 
                     {/* Address */}

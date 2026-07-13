@@ -17,6 +17,7 @@ interface SessionsViewProps {
   attendance: Attendance[];
   t: (key: string) => string;
   onAddSession: (newSession: Omit<Session, 'id'>) => void;
+  onUpdateSession: (id: string, updates: Partial<Omit<Session, 'id'>>) => void;
   onDeleteSession: (id: string) => void;
 }
 
@@ -27,10 +28,12 @@ export default function SessionsView({
   attendance,
   t,
   onAddSession,
+  onUpdateSession,
   onDeleteSession
 }: SessionsViewProps) {
   // UI states
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [selectedSession, setSelectedSession] = useState<Session | null>(sessions[0] || null);
 
   // Auto-select first session when sessions are loaded or updated
@@ -64,12 +67,31 @@ export default function SessionsView({
   // Also reset form fields when modal opens
   useEffect(() => {
     if (isFormOpen) {
-      setTitle('');
-      setDescription('');
+      if (editingSession) {
+        setTitle(editingSession.title);
+        setCoachId(editingSession.coachId);
+        setLocation(editingSession.location);
+        setDate(editingSession.date);
+        setTime(editingSession.time);
+        setDescription(editingSession.description);
+        setCapacity(editingSession.capacity);
+      } else {
+        setTitle('');
+        setDescription('');
+        if (coaches.length > 0) setCoachId(coaches[0].id);
+        setLocation('Dojo Central - Oran');
+        setDate(new Date().toISOString().split('T')[0]);
+        setTime('18:00');
+        setCapacity(25);
+      }
       setIsSubmitting(false);
-      if (coaches.length > 0) setCoachId(coaches[0].id);
     }
-  }, [isFormOpen, coaches]);
+  }, [isFormOpen, editingSession, coaches]);
+
+  const openEditModal = (session: Session) => {
+    setEditingSession(session);
+    setIsFormOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,34 +103,23 @@ export default function SessionsView({
 
     setIsSubmitting(true);
     try {
-      if (!coachId && coaches.length > 0) {
-        // Try to fallback if state hasn't caught up
-        const fallbackId = coaches[0].id;
-        await onAddSession({
-          title,
-          coachId: fallbackId,
-          location,
-          date,
-          time,
-          description,
-          capacity
-        });
-      } else if (!coachId) {
-        alert('Veuillez d\'abord ajouter un entraîneur dans la section Coachs.');
-        setIsSubmitting(false);
-        return;
+      const sessionData = {
+        title,
+        coachId,
+        location,
+        date,
+        time,
+        description,
+        capacity
+      };
+
+      if (editingSession) {
+        await onUpdateSession(editingSession.id, sessionData);
       } else {
-        await onAddSession({
-          title,
-          coachId,
-          location,
-          date,
-          time,
-          description,
-          capacity
-        });
+        await onAddSession(sessionData);
       }
       setIsFormOpen(false);
+      setEditingSession(null);
     } catch (error) {
       console.error("Submission failed:", error);
     } finally {
@@ -150,7 +161,10 @@ export default function SessionsView({
 
         <button 
           id="btn-open-session-form"
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => {
+            setEditingSession(null);
+            setIsFormOpen(true);
+          }}
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all self-start border border-bento-gold/20"
         >
           <Plus className="w-4 h-4" />
@@ -191,23 +205,37 @@ export default function SessionsView({
                         🥋 Dojo
                       </span>
                       
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('Voulez-vous supprimer cette séance de sport ?')) {
-                            onDeleteSession(session.id);
-                            if (selectedSession?.id === session.id) {
-                              setSelectedSession(null);
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(session);
+                          }}
+                          className={`p-1 rounded-md transition-colors ${
+                            isSelected ? 'text-bento-blue/60 hover:bg-bento-blue/10 hover:text-bento-blue' : 'text-slate-400 hover:bg-slate-50 hover:text-blue-600'
+                          }`}
+                          title="Modifier"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('Voulez-vous supprimer cette séance de sport ?')) {
+                              onDeleteSession(session.id);
+                              if (selectedSession?.id === session.id) {
+                                setSelectedSession(null);
+                              }
                             }
-                          }
-                        }}
-                        className={`p-1 rounded-md transition-colors ${
-                          isSelected ? 'text-bento-blue/60 hover:bg-bento-blue/10 hover:text-bento-blue' : 'text-slate-400 hover:bg-slate-50 hover:text-rose-600'
-                        }`}
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                          }}
+                          className={`p-1 rounded-md transition-colors ${
+                            isSelected ? 'text-bento-blue/60 hover:bg-bento-blue/10 hover:text-bento-blue' : 'text-slate-400 hover:bg-slate-50 hover:text-rose-600'
+                          }`}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-1">
@@ -343,7 +371,7 @@ export default function SessionsView({
               {/* Modal header */}
               <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 className="text-base font-display font-bold text-slate-800" id="session-modal-title">
-                  Planifier une séance d'entraînement
+                  {editingSession ? 'Modifier la séance' : 'Planifier une séance d\'entraînement'}
                 </h3>
                 <button 
                   onClick={() => setIsFormOpen(false)}
@@ -480,7 +508,7 @@ export default function SessionsView({
                         Planification...
                       </>
                     ) : (
-                      'Confirmer le planning'
+                      editingSession ? 'Enregistrer les modifications' : 'Confirmer le planning'
                     )}
                   </button>
                 </div>

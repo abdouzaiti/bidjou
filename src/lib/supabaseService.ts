@@ -39,7 +39,8 @@ export const supabaseService = {
       monthlyFee: m.monthly_fee,
       medicalNotes: m.medical_notes,
       emergencyInfo: m.emergency_info,
-      jetonId: m.jeton_id || ''
+      jetonId: m.jeton_id || '',
+      gender: m.gender === 'Male' ? 'Homme' : m.gender === 'Female' ? 'Femme' : undefined
     };
   },
 
@@ -57,7 +58,8 @@ export const supabaseService = {
         monthly_fee: member.monthlyFee,
         medical_notes: member.medicalNotes,
         emergency_info: member.emergencyInfo,
-        jeton_id: member.jetonId
+        jeton_id: member.jetonId,
+        gender: member.gender === 'Homme' ? 'Male' : member.gender === 'Femme' ? 'Female' : null
       }])
       .select()
       .single();
@@ -82,6 +84,9 @@ export const supabaseService = {
     if (member.medicalNotes !== undefined) updateData.medical_notes = member.medicalNotes;
     if (member.emergencyInfo !== undefined) updateData.emergency_info = member.emergencyInfo;
     if (member.jetonId !== undefined) updateData.jeton_id = member.jetonId;
+    if (member.gender !== undefined) {
+      updateData.gender = member.gender === 'Homme' ? 'Male' : member.gender === 'Femme' ? 'Female' : null;
+    }
 
     const { error } = await supabase
       .from('members')
@@ -207,6 +212,8 @@ export const supabaseService = {
         coach_id: session.coachId,
         location: session.location,
         date: session.date,
+        time: session.time,
+        description: session.description,
         capacity: session.capacity
       }])
       .select()
@@ -214,6 +221,24 @@ export const supabaseService = {
 
     if (error) throw error;
     return this.mapSession(data);
+  },
+
+  async updateSession(id: string, updates: Partial<Omit<Session, 'id'>>): Promise<void> {
+    const updateData: any = {};
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.coachId !== undefined) updateData.coach_id = updates.coachId;
+    if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.date !== undefined) updateData.date = updates.date;
+    if (updates.time !== undefined) updateData.time = updates.time;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.capacity !== undefined) updateData.capacity = updates.capacity;
+
+    const { error } = await supabase
+      .from('sessions')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) throw error;
   },
 
   async deleteSession(id: string): Promise<void> {

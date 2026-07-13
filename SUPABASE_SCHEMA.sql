@@ -140,3 +140,33 @@ ON CONFLICT (id) DO NOTHING;
 -- ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY "Allow all access" ON members FOR ALL USING (true);
 -- (Repeat for other tables)
+
+-- 4. Schema Migrations (Fix missing columns)
+-- Run this if you already have the tables but see errors about missing columns
+DO $$ 
+BEGIN 
+    -- Add gender to members if missing
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='gender') THEN
+        ALTER TABLE members ADD COLUMN gender TEXT;
+    END IF;
+
+    -- Add missing session columns
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='description') THEN
+        ALTER TABLE sessions ADD COLUMN description TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='time') THEN
+        ALTER TABLE sessions ADD COLUMN time TIME;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='location') THEN
+        ALTER TABLE sessions ADD COLUMN location TEXT DEFAULT 'Dojo Central';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='sessions' AND column_name='capacity') THEN
+        ALTER TABLE sessions ADD COLUMN capacity INTEGER DEFAULT 20;
+    END IF;
+
+    -- Refresh schema cache
+    EXECUTE 'NOTIFY pgrst, ''reload schema''';
+END $$;
