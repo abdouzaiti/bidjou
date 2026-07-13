@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS payments (
     year INTEGER,
     date DATE DEFAULT CURRENT_DATE,
     payment_method TEXT,
+    reference TEXT,
+    notes TEXT,
     receipt_number TEXT UNIQUE
 );
 
@@ -190,6 +192,14 @@ BEGIN
     -- PAYMENTS Table Fixes
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='receipt_number') THEN
         ALTER TABLE payments ADD COLUMN receipt_number TEXT UNIQUE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='reference') THEN
+        ALTER TABLE payments ADD COLUMN reference TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='notes') THEN
+        ALTER TABLE payments ADD COLUMN notes TEXT;
     END IF;
 END $$;
 

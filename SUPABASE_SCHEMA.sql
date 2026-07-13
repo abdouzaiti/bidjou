@@ -167,6 +167,19 @@ BEGIN
         ALTER TABLE sessions ADD COLUMN capacity INTEGER DEFAULT 20;
     END IF;
 
+    -- Add missing payment columns
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='reference') THEN
+        ALTER TABLE payments ADD COLUMN reference TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='notes') THEN
+        ALTER TABLE payments ADD COLUMN notes TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payments' AND column_name='receipt_number') THEN
+        ALTER TABLE payments ADD COLUMN receipt_number TEXT;
+    END IF;
+
     -- Refresh schema cache
     EXECUTE 'NOTIFY pgrst, ''reload schema''';
 END $$;

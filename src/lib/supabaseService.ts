@@ -152,6 +152,8 @@ export const supabaseService = {
 
     // Only add these if they are likely to exist
     if (payment.receiptNumber) insertData.receipt_number = payment.receiptNumber;
+    if (payment.reference !== undefined) insertData.reference = payment.reference;
+    if (payment.notes !== undefined) insertData.notes = payment.notes;
 
     const { data, error } = await supabase
       .from('payments')
