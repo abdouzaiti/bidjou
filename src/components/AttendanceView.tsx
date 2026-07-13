@@ -43,6 +43,9 @@ export default function AttendanceView({
   const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id || '');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Determine current active date based on selected session
+  const activeDate = sessions.find(s => s.id === selectedSessionId)?.date || todayStr;
+
   // Set initial selected session when sessions list loads or changes
   useEffect(() => {
     if (sessions.length > 0) {
@@ -118,7 +121,7 @@ export default function AttendanceView({
 
     // Check if already checked in today
     const isAlreadyPresent = attendance.some(
-      a => a.memberId === memberId && a.date === todayStr && a.sessionId === selectedSessionId
+      a => a.memberId === memberId && a.date === activeDate && a.sessionId === selectedSessionId
     );
 
     setTimeout(() => {
@@ -162,7 +165,7 @@ export default function AttendanceView({
       setScannedMember(foundMember);
 
       const isAlreadyPresent = attendance.some(
-        a => a.memberId === foundMember.id && a.date === todayStr && a.sessionId === selectedSessionId
+        a => a.memberId === foundMember.id && a.date === activeDate && a.sessionId === selectedSessionId
       );
 
       if (isAlreadyPresent) {
@@ -186,7 +189,7 @@ export default function AttendanceView({
   };
 
   // Calculations for list of active members with status today
-  const todayAttendances = attendance.filter(a => a.date === todayStr && a.sessionId === selectedSessionId);
+  const todayAttendances = attendance.filter(a => a.date === activeDate && a.sessionId === selectedSessionId);
   
   // Create a dictionary of today's attendance for quick lookup
   const todayAttendanceMap = new Map<string, Attendance>();
@@ -243,7 +246,7 @@ export default function AttendanceView({
                 ) : (
                   sessions.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.title} ({s.time})
+                      {s.title}{s.time ? ` (${s.time})` : ''}
                     </option>
                   ))
                 )}
@@ -255,7 +258,9 @@ export default function AttendanceView({
           {sessions.find(s => s.id === selectedSessionId) && (
             <div className="hidden md:flex flex-col text-xs text-slate-500 bg-slate-50/50 border border-slate-100/50 px-3 py-1.5 rounded-xl text-left">
               <span className="font-semibold text-slate-700">📍 {sessions.find(s => s.id === selectedSessionId)?.location}</span>
-              <span className="text-[10px] text-slate-400">Heure: {sessions.find(s => s.id === selectedSessionId)?.time}</span>
+              {sessions.find(s => s.id === selectedSessionId)?.time && (
+                <span className="text-[10px] text-slate-400">Heure: {sessions.find(s => s.id === selectedSessionId)?.time}</span>
+              )}
             </div>
           )}
         </div>
@@ -627,7 +632,7 @@ export default function AttendanceView({
                               currentRecord.status === 'Present' ? 'bg-emerald-50 text-emerald-600' :
                               currentRecord.status === 'Late' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
                             }`}>
-                              {currentRecord.status === 'Present' ? 'Présent' : currentRecord.status === 'Late' ? 'En retard' : 'Absent'} ({currentRecord.time})
+                              {currentRecord.status === 'Present' ? 'Présent' : currentRecord.status === 'Late' ? 'En retard' : 'Absent'}{currentRecord.time ? ` (${currentRecord.time})` : ''}
                             </span>
                           ) : (
                             <span className="text-slate-400 italic">Non pointé</span>
@@ -752,7 +757,7 @@ export default function AttendanceView({
                           />
                           <div>
                             <span className="text-xs font-bold text-slate-700 block">{member.name}</span>
-                            <span className="text-[10px] text-slate-400 block">{record.time}</span>
+                            {record.time && <span className="text-[10px] text-slate-400 block">{record.time}</span>}
                           </div>
                         </div>
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-sm ${

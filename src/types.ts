@@ -32,7 +32,7 @@ export interface Attendance {
   id: string;
   memberId: string;
   date: string; // YYYY-MM-DD
-  time: string; // HH:MM
+  time?: string; // HH:MM
   sessionId: string;
   coachId: string;
   status: 'Present' | 'Absent' | 'Late';
@@ -57,8 +57,8 @@ export interface Session {
   coachId: string;
   location: string;
   date: string; // YYYY-MM-DD
-  time: string; // HH:MM
-  description: string;
+  time?: string; // HH:MM
+  description?: string;
   capacity: number;
 }
 

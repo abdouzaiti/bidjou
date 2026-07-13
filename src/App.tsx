@@ -22,6 +22,7 @@ import {
   loadExpenses, saveExpenses,
   loadNotifications, saveNotifications,
   loadSettings, saveSettings,
+  loadAttendance, saveAttendance,
   resetStoredData
 } from './utils/mockData';
 import { supabaseService } from './lib/supabaseService';
@@ -196,7 +197,7 @@ export default function App() {
       setExpenses(loadExpenses());
       setNotifications(loadNotifications());
       setSettings(loadSettings());
-      setAttendance(JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]'));
+      setAttendance(loadAttendance());
     };
 
     loadAllData();
@@ -279,40 +280,44 @@ export default function App() {
 
   // HANDLERS : Attendance (Pointage)
   const handleRecordAttendance = async (memberId: string, status: 'Present' | 'Late' | 'Absent', sessionId: string) => {
-    const todayStr = '2026-07-07';
+    const session = sessions.find(s => s.id === sessionId);
+    const sessionDate = session ? session.date : '2026-07-07';
+    const sessionCoachId = session ? session.coachId : (activeRole === 'Coach' ? 'coach-bidjou' : 'admin');
+    
     const currentTimeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     
     if (isSupabaseConfigured) {
       try {
         const fresh = await supabaseService.recordAttendance({
           memberId,
-          date: todayStr,
+          date: sessionDate,
           time: currentTimeStr,
           status,
           sessionId,
-          coachId: activeRole === 'Coach' ? 'coach-bidjou' : 'admin' // default or active coach
+          coachId: sessionCoachId
         });
-        const filtered = attendance.filter(a => !(a.memberId === memberId && a.date === todayStr && a.sessionId === sessionId));
+        const filtered = attendance.filter(a => !(a.memberId === memberId && a.date === sessionDate && a.sessionId === sessionId));
         setAttendance([fresh, ...filtered]);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error recording attendance in Supabase:", error);
+        triggerNotification('Erreur Pointage', `Échec de l'enregistrement: ${error.message || 'Problème de connexion'}`, 'Alert');
       }
     } else {
-      const storedAttendance = JSON.parse(localStorage.getItem('les_bijoux_oran_attendance') || '[]');
-      const filtered = storedAttendance.filter((a: any) => !(a.memberId === memberId && a.date === todayStr && a.sessionId === sessionId));
+      const filtered = attendance.filter(a => !(a.memberId === memberId && a.date === sessionDate && a.sessionId === sessionId));
       
       const newRecord = {
         id: `att-${Date.now()}`,
         memberId,
-        date: todayStr,
+        date: sessionDate,
         time: currentTimeStr,
         status,
-        sessionId
+        sessionId,
+        coachId: sessionCoachId
       };
 
       const updated = [newRecord, ...filtered];
-      localStorage.setItem('les_bijoux_oran_attendance', JSON.stringify(updated));
       setAttendance(updated);
+      saveAttendance(updated);
     }
   };
 
@@ -366,8 +371,10 @@ export default function App() {
       try {
         const fresh = await supabaseService.addSession(newSession);
         setSessions([fresh, ...sessions]);
-      } catch (error) {
+        triggerNotification('Nouvelle Séance', `La séance "${newSession.title}" est maintenant planifiée le ${newSession.date}.`, 'Reminder');
+      } catch (error: any) {
         console.error("Error adding session to Supabase:", error);
+        triggerNotification('Erreur de création', `Impossible de créer la séance : ${error.message || 'Erreur inconnue'}`, 'Alert');
       }
     } else {
       const fresh: Session = {
@@ -377,8 +384,8 @@ export default function App() {
       const updated = [fresh, ...sessions];
       setSessions(updated);
       saveSessions(updated);
+      triggerNotification('Nouvelle Séance', `La séance "${newSession.title}" est maintenant planifiée le ${newSession.date}.`, 'Reminder');
     }
-    triggerNotification('Nouvelle Séance', `La séance "${newSession.title}" est maintenant planifiée le ${newSession.date}.`, 'Reminder');
   };
 
   const handleDeleteSession = async (id: string) => {

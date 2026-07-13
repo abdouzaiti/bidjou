@@ -187,13 +187,13 @@ export const supabaseService = {
   mapSession(s: any): Session {
     return {
       id: s.id,
-      title: s.title,
-      coachId: s.coach_id,
-      location: s.location,
-      date: s.date,
-      time: s.time,
-      description: s.description,
-      capacity: s.capacity
+      title: s.title || 'Séance sans titre',
+      coachId: s.coach_id || s.coachId || '',
+      location: s.location || '',
+      date: s.date || '',
+      time: s.time || s.start_time || '',
+      description: s.description || '',
+      capacity: s.capacity || 0
     };
   },
 
@@ -205,8 +205,6 @@ export const supabaseService = {
         coach_id: session.coachId,
         location: session.location,
         date: session.date,
-        time: session.time,
-        description: session.description,
         capacity: session.capacity
       }])
       .select()
@@ -444,9 +442,9 @@ export const supabaseService = {
       id: a.id,
       memberId: a.member_id,
       date: a.date,
-      time: a.time,
+      time: a.time || '',
       sessionId: a.session_id,
-      coachId: a.coach_id,
+      coachId: a.coach_id || '',
       status: a.status
     };
   },
@@ -465,9 +463,7 @@ export const supabaseService = {
       .insert([{
         member_id: attendance.memberId,
         date: attendance.date,
-        time: attendance.time,
         session_id: attendance.sessionId,
-        coach_id: attendance.coachId,
         status: attendance.status
       }])
       .select()

@@ -676,7 +676,7 @@ export default function MembersView({
                             <div key={a.id} className="p-3 flex items-center justify-between hover:bg-slate-50/40">
                               <div>
                                 <span className="font-bold text-slate-700 capitalize">{a.status === 'Present' ? 'Présent' : a.status === 'Late' ? 'En retard' : 'Absent'}</span>
-                                <span className="block text-[10px] text-slate-400">{a.date} à {a.time}</span>
+                                <span className="block text-[10px] text-slate-400">{a.date}{a.time ? ` à ${a.time}` : ''}</span>
                               </div>
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm ${
                                 a.status === 'Present' ? 'bg-emerald-50 text-emerald-600' :

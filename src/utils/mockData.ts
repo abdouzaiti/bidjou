@@ -476,6 +476,9 @@ export const saveNotifications = (data: AppNotification[]) => setStoredData('not
 export const loadSettings = () => getStoredData<ClubSettings>('settings', INITIAL_SETTINGS);
 export const saveSettings = (data: ClubSettings) => setStoredData('settings', data);
 
+export const loadAttendance = () => getStoredData<Attendance[]>('attendance', INITIAL_ATTENDANCE);
+export const saveAttendance = (data: Attendance[]) => setStoredData('attendance', data);
+
 // Clear all data to restore defaults
 export function resetStoredData(): void {
   try {
