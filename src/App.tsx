@@ -348,6 +348,8 @@ export default function App() {
         setPayments([fresh, ...payments]);
       } catch (error) {
         console.error("Error adding payment to Supabase:", error);
+        alert(`Impossible d'enregistrer le paiement : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+        throw error; // Rethrow to let the component handle loading state
       }
     } else {
       const fresh: Payment = {

@@ -46,9 +46,9 @@ export interface Payment {
   year: number;
   date: string; // YYYY-MM-DD
   paymentMethod: 'Cash' | 'Card' | 'Bank Transfer';
-  reference: string;
-  notes: string;
-  receiptNumber: string;
+  reference?: string;
+  notes?: string;
+  receiptNumber?: string;
 }
 
 export interface Session {

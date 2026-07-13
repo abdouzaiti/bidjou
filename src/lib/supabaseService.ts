@@ -129,26 +129,28 @@ export const supabaseService = {
       year: p.year,
       date: p.date,
       paymentMethod: p.payment_method,
-      reference: p.reference,
-      notes: p.notes,
-      receiptNumber: p.receipt_number
+      reference: p.reference || '',
+      notes: p.notes || '',
+      receiptNumber: p.receipt_number || p.receiptNumber || ''
     };
   },
 
   async addPayment(payment: Omit<Payment, 'id'>): Promise<Payment> {
+    const insertData: any = {
+      member_id: payment.memberId,
+      amount: payment.amount,
+      month: payment.month,
+      year: payment.year,
+      date: payment.date,
+      payment_method: payment.paymentMethod,
+    };
+
+    // Only add these if they are likely to exist
+    if (payment.receiptNumber) insertData.receipt_number = payment.receiptNumber;
+
     const { data, error } = await supabase
       .from('payments')
-      .insert([{
-        member_id: payment.memberId,
-        amount: payment.amount,
-        month: payment.month,
-        year: payment.year,
-        date: payment.date,
-        payment_method: payment.paymentMethod,
-        reference: payment.reference,
-        notes: payment.notes,
-        receipt_number: payment.receiptNumber
-      }])
+      .insert([insertData])
       .select()
       .single();
 
