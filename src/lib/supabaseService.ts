@@ -313,6 +313,22 @@ export const supabaseService = {
     if (error) throw error;
   },
 
+  async updateCoach(id: string, updates: Partial<Coach>): Promise<void> {
+    const updateData: any = {};
+    if (updates.name) updateData.name = updates.name;
+    if (updates.photoUrl !== undefined) updateData.photo_url = updates.photoUrl;
+    if (updates.phone) updateData.phone = updates.phone;
+    if (updates.email) updateData.email = updates.email;
+    if (updates.status) updateData.status = updates.status;
+
+    const { error } = await supabase
+      .from('coaches')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
   // Expenses
   async getExpenses(): Promise<Expense[]> {
     try {

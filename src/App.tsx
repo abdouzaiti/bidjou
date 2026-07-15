@@ -457,6 +457,24 @@ export default function App() {
     }
   };
 
+  const handleUpdateCoach = async (id: string, updates: Partial<Coach>) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.updateCoach(id, updates);
+        setCoaches(coaches.map(c => c.id === id ? { ...c, ...updates } : c));
+        triggerNotification('Mise à jour', `Informations de l'entraîneur mises à jour.`, 'Announcement');
+      } catch (error: any) {
+        console.error("Error updating coach in Supabase:", error);
+        triggerNotification('Erreur Sync', `Échec de mise à jour: ${error.message}`, 'Alert');
+      }
+    } else {
+      const updated = coaches.map(c => c.id === id ? { ...c, ...updates } : c);
+      setCoaches(updated);
+      saveCoaches(updated);
+      triggerNotification('Mise à jour', `Informations de l'entraîneur mises à jour localement.`, 'Announcement');
+    }
+  };
+
   // HANDLERS : Expenses
   const handleAddExpense = async (newExpense: Omit<Expense, 'id'>) => {
     if (isSupabaseConfigured) {
@@ -715,6 +733,7 @@ export default function App() {
             sessions={sessions}
             t={t}
             onAddCoach={handleAddCoach}
+            onUpdateCoach={handleUpdateCoach}
             onDeleteCoach={handleDeleteCoach}
           />
         );

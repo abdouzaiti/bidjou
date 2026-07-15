@@ -15,6 +15,7 @@ interface CoachesViewProps {
   sessions: Session[];
   t: (key: string) => string;
   onAddCoach: (newCoach: Omit<Coach, 'id'>) => void;
+  onUpdateCoach: (id: string, updates: Partial<Coach>) => void;
   onDeleteCoach: (id: string) => void;
 }
 
@@ -23,14 +24,33 @@ export default function CoachesView({
   sessions,
   t,
   onAddCoach,
+  onUpdateCoach,
   onDeleteCoach
 }: CoachesViewProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCoach, setEditingCoach] = useState<Coach | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
+
+  const handleOpenForm = (coach?: Coach) => {
+    if (coach) {
+      setEditingCoach(coach);
+      setName(coach.name);
+      setPhone(coach.phone);
+      setEmail(coach.email);
+      setPhotoUrl(coach.photoUrl);
+    } else {
+      setEditingCoach(null);
+      setName('');
+      setPhone('');
+      setEmail('');
+      setPhotoUrl('');
+    }
+    setIsFormOpen(true);
+  };
 
   const handlePhotoUpload = (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -64,13 +84,22 @@ export default function CoachesView({
 
     const resolvedPhoto = photoUrl.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || 'Entraîneur')}`;
 
-    onAddCoach({
-      name,
-      phone,
-      email,
-      photoUrl: resolvedPhoto,
-      status: 'Active'
-    });
+    if (editingCoach) {
+      onUpdateCoach(editingCoach.id, {
+        name,
+        phone,
+        email,
+        photoUrl: resolvedPhoto
+      });
+    } else {
+      onAddCoach({
+        name,
+        phone,
+        email,
+        photoUrl: resolvedPhoto,
+        status: 'Active'
+      });
+    }
 
     setIsFormOpen(false);
     // Reset
@@ -78,6 +107,7 @@ export default function CoachesView({
     setPhone('');
     setEmail('');
     setPhotoUrl('');
+    setEditingCoach(null);
   };
 
   // Helper: Count assigned sessions
@@ -99,7 +129,7 @@ export default function CoachesView({
 
         <button 
           id="btn-open-coach-form"
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => handleOpenForm()}
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all self-start border border-bento-gold/20"
         >
           <Plus className="w-4 h-4" />
@@ -158,17 +188,26 @@ export default function CoachesView({
                   {sessionsCount} séances attitrées
                 </span>
 
-                <button 
-                  onClick={() => {
-                    if (confirm(`Voulez-vous supprimer l'entraîneur ${coach.name} de l'équipe ?`)) {
-                      onDeleteCoach(coach.id);
-                    }
-                  }}
-                  className="p-1.5 bg-rose-50/50 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
-                  title="Supprimer l'entraîneur"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleOpenForm(coach)}
+                    className="p-1.5 bg-slate-50/50 hover:bg-slate-50 text-slate-500 rounded-lg transition-colors"
+                    title="Modifier l'entraîneur"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (confirm(`Voulez-vous supprimer l'entraîneur ${coach.name} de l'équipe ?`)) {
+                        onDeleteCoach(coach.id);
+                      }
+                    }}
+                    className="p-1.5 bg-rose-50/50 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
+                    title="Supprimer l'entraîneur"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -191,7 +230,7 @@ export default function CoachesView({
               {/* Modal header */}
               <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 className="text-base font-display font-bold text-slate-800" id="coaches-modal-title">
-                  Inscrire un nouvel entraîneur
+                  {editingCoach ? "Modifier les informations" : "Inscrire un nouvel entraîneur"}
                 </h3>
                 <button 
                   onClick={() => setIsFormOpen(false)}
@@ -320,7 +359,7 @@ export default function CoachesView({
                     type="submit"
                     className="px-5 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
                   >
-                    Inscrire l'entraîneur
+                    {editingCoach ? "Mettre à jour" : "Inscrire l'entraîneur"}
                   </button>
                 </div>
               </form>
