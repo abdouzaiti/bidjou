@@ -22,7 +22,7 @@ export const INITIAL_SESSIONS: Session[] = [
     title: 'Judo Élite - Préparation Physique',
     coachId: 'coach-1',
     location: 'Dojo Central - Oran',
-    date: '2026-07-07',
+    date: '2026-07-20',
     time: '18:00',
     description: 'Séance intensive axée sur le randori et la technique de projection (Nage-Waza).',
     capacity: 25
@@ -32,7 +32,7 @@ export const INITIAL_SESSIONS: Session[] = [
     title: 'Karaté Enfants - Débutants',
     coachId: 'coach-1',
     location: 'Dojo Annexe - Es Senia',
-    date: '2026-07-07',
+    date: '2026-07-21',
     time: '16:30',
     description: 'Apprentissage des katas de base (Heian Shodan) et de la discipline de combat.',
     capacity: 20
@@ -42,7 +42,7 @@ export const INITIAL_SESSIONS: Session[] = [
     title: 'Gymnastique Rythmique & Sol',
     coachId: 'coach-1',
     location: 'Salle Omnisports - Front de Mer',
-    date: '2026-07-08',
+    date: '2026-07-22',
     time: '15:00',
     description: 'Enchaînement chorégraphique, souplesse et renforcement musculaire du tronc.',
     capacity: 15
@@ -52,7 +52,7 @@ export const INITIAL_SESSIONS: Session[] = [
     title: 'Self-Défense Adultes Tous Niveaux',
     coachId: 'coach-1',
     location: 'Dojo Central - Oran',
-    date: '2026-07-09',
+    date: '2026-07-23',
     time: '19:30',
     description: 'Techniques de dégagement rapide, gestion du stress et clés de bras.',
     capacity: 30
@@ -159,11 +159,11 @@ export const INITIAL_MEMBERS: Member[] = [
 ];
 
 export const INITIAL_ATTENDANCE: Attendance[] = [
-  // Today's attendance (2026-07-07)
+  // Today's attendance (2026-07-14)
   {
     id: 'att-1',
     memberId: 'mbr-1',
-    date: '2026-07-07',
+    date: '2026-07-14',
     time: '17:55',
     sessionId: 'session-1',
     coachId: 'coach-1',
@@ -172,7 +172,7 @@ export const INITIAL_ATTENDANCE: Attendance[] = [
   {
     id: 'att-2',
     memberId: 'mbr-2',
-    date: '2026-07-07',
+    date: '2026-07-14',
     time: '16:25',
     sessionId: 'session-2',
     coachId: 'coach-3',
@@ -181,17 +181,17 @@ export const INITIAL_ATTENDANCE: Attendance[] = [
   {
     id: 'att-3',
     memberId: 'mbr-5',
-    date: '2026-07-07',
+    date: '2026-07-14',
     time: '18:10',
     sessionId: 'session-1',
     coachId: 'coach-1',
     status: 'Late'
   },
-  // Yesterday's attendance (2026-07-06)
+  // Previous attendance (2026-07-07)
   {
     id: 'att-4',
     memberId: 'mbr-1',
-    date: '2026-07-06',
+    date: '2026-07-07',
     time: '18:02',
     sessionId: 'session-1',
     coachId: 'coach-1',
@@ -200,21 +200,12 @@ export const INITIAL_ATTENDANCE: Attendance[] = [
   {
     id: 'att-5',
     memberId: 'mbr-3',
-    date: '2026-07-06',
+    date: '2026-07-07',
     time: '16:28',
     sessionId: 'session-2',
     coachId: 'coach-3',
     status: 'Present'
   },
-  {
-    id: 'att-6',
-    memberId: 'mbr-6',
-    date: '2026-07-06',
-    time: '18:00',
-    sessionId: 'session-1',
-    coachId: 'coach-1',
-    status: 'Present'
-  }
 ];
 
 export const INITIAL_PAYMENTS: Payment[] = [
@@ -242,6 +233,29 @@ export const INITIAL_PAYMENTS: Payment[] = [
     reference: 'CIB-9031-102',
     notes: 'Réglé par carte CIB sur terminal de paiement.',
     receiptNumber: 'REC-2026-0042'
+  },
+  // Payments for Mai 2026
+  {
+    id: 'pay-may-1',
+    memberId: 'mbr-1',
+    amount: 3500,
+    month: 'Mai',
+    year: 2026,
+    date: '2026-05-02',
+    paymentMethod: 'Cash',
+    reference: 'REF-MAY-01',
+    receiptNumber: 'REC-2026-0010'
+  },
+  {
+    id: 'pay-may-2',
+    memberId: 'mbr-2',
+    amount: 3000,
+    month: 'Mai',
+    year: 2026,
+    date: '2026-05-05',
+    paymentMethod: 'Cash',
+    reference: 'REF-MAY-02',
+    receiptNumber: 'REC-2026-0011'
   },
   // Payments for Juin 2026
   {
@@ -346,6 +360,14 @@ export const INITIAL_EXPENSES: Expense[] = [
     category: 'Transport',
     date: '2026-06-18',
     description: 'Déplacement de l\'équipe élite de judo d\'Oran à Alger (Aller-Retour).'
+  },
+  {
+    id: 'exp-6',
+    title: 'Achat de petit matériel (Mai)',
+    amount: 12000,
+    category: 'Equipment',
+    date: '2026-05-15',
+    description: 'Cordes à sauter et élastiques de résistance.'
   }
 ];
 
@@ -389,7 +411,7 @@ export const INITIAL_SETTINGS: ClubSettings = {
   clubLogo: "🥋",
   defaultMonthlyFee: 3000,
   currency: "DZD",
-  language: "fr",
+  language: "ar",
   theme: "light",
   coachUsername: "coach",
   coachPassword: "password",

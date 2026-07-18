@@ -159,8 +159,8 @@ export default function PaymentsView({
       {/* Top action bar */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-display font-bold text-bento-blue">Suivi de la Trésorerie</h2>
-          <p className="text-xs text-slate-500">Gérer les cotisations mensuelles, enregistrer les encaissements et éditer les reçus officiels.</p>
+          <h2 className="text-2xl font-display font-bold text-bento-blue">{t('payments_module_title')}</h2>
+          <p className="text-xs text-slate-500">{t('payments_module_description')}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function PaymentsView({
             className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-bento-blue bg-bento-gold hover:bg-bento-gold-dark rounded-xl shadow-md transition-all border border-bento-gold/20"
           >
             <Plus className="w-4 h-4" />
-            Enregistrer un règlement
+            {t('record_payment_action')}
           </button>
         </div>
       </div>

@@ -116,6 +116,10 @@ BEGIN
         ALTER TABLE members ADD COLUMN gender TEXT;
     END IF;
 
+    -- DROP old gender check if exists to avoid conflicts
+    ALTER TABLE members DROP CONSTRAINT IF EXISTS members_gender_check;
+    ALTER TABLE members DROP CONSTRAINT IF EXISTS members_gender_check1;
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='birth_date') THEN
         ALTER TABLE members ADD COLUMN birth_date DATE;
     END IF;

@@ -36,7 +36,7 @@ export default function AttendanceView({
   setQuickOpenScanner,
   onUpdateMember
 }: AttendanceViewProps) {
-  const todayStr = '2026-07-07';
+  const todayStr = new Date().toISOString().split('T')[0];
   
   // Tabs: Terminal Scanner or Manual pointage or Calendar History
   const [activeTab, setActiveTab] = useState<'scanner' | 'manual' | 'calendar'>('scanner');
@@ -49,11 +49,12 @@ export default function AttendanceView({
   // Set initial selected session when sessions list loads or changes
   useEffect(() => {
     if (sessions.length > 0) {
+      // If no session selected, or current selection is not in the list anymore
       if (!selectedSessionId || !sessions.some(s => s.id === selectedSessionId)) {
         setSelectedSessionId(sessions[0].id);
       }
     }
-  }, [sessions, selectedSessionId]);
+  }, [sessions]); // Removed selectedSessionId from deps to avoid loop and ensure it only snaps when sessions change
 
   // Scanner Simulator States
   const [scannedMemberId, setScannedMemberId] = useState<string>('');

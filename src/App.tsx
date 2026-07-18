@@ -23,7 +23,8 @@ import {
   loadNotifications, saveNotifications,
   loadSettings, saveSettings,
   loadAttendance, saveAttendance,
-  resetStoredData
+  resetStoredData,
+  INITIAL_LOGS
 } from './utils/mockData';
 import { supabaseService } from './lib/supabaseService';
 import { supabase } from './lib/supabase';
@@ -97,7 +98,7 @@ export default function App() {
     clubLogo: "🥋",
     defaultMonthlyFee: 3000,
     currency: "DZD",
-    language: "fr",
+    language: "ar",
     theme: "light",
     coachUsername: "coach",
     coachPassword: "password",
@@ -343,13 +344,24 @@ export default function App() {
     const receiptNumber = `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     
     if (isSupabaseConfigured) {
+      // Validate that memberId is a UUID if we are using Supabase
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newPayment.memberId);
+      if (!isUUID) {
+        const errorMsg = "L'ID de l'adhérent n'est pas un format Cloud (UUID). Veuillez d'abord migrer cet adhérent vers Supabase ou réinitialiser les données.";
+        triggerNotification('Erreur de Base', errorMsg, 'Alert');
+        alert(errorMsg);
+        throw new Error(errorMsg);
+      }
+
       try {
         const fresh = await supabaseService.addPayment({ ...newPayment, receiptNumber });
         setPayments([fresh, ...payments]);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error adding payment to Supabase:", error);
-        alert(`Impossible d'enregistrer le paiement : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
-        throw error; // Rethrow to let the component handle loading state
+        const detail = error.message || 'Erreur inconnue';
+        triggerNotification('Échec Paiement', `Impossible d'enregistrer dans Supabase: ${detail}`, 'Alert');
+        alert(`Impossible d'enregistrer le paiement dans le Cloud : ${detail}`);
+        throw error;
       }
     } else {
       const fresh: Payment = {
@@ -662,7 +674,7 @@ export default function App() {
             expenses={expenses}
             attendance={attendance}
             sessions={sessions}
-            logs={JSON.parse(localStorage.getItem('bjo_logs') || '[]')}
+            logs={JSON.parse(localStorage.getItem('bjo_logs') || JSON.stringify(INITIAL_LOGS))}
             currency={settings.currency}
             t={t}
             onNavigate={(view) => setCurrentView(view)}
@@ -800,7 +812,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-bento-bg flex flex-col md:flex-row antialiased text-bento-text">
+    <div className={`min-h-screen bg-bento-bg flex flex-col md:flex-row antialiased text-bento-text`} dir={settings.language === 'ar' ? 'rtl' : 'ltr'}>
       
       {/* Intro Animation Overlay */}
       <AnimatePresence>

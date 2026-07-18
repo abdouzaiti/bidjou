@@ -40,7 +40,7 @@ export const supabaseService = {
       medicalNotes: m.medical_notes,
       emergencyInfo: m.emergency_info,
       jetonId: m.jeton_id || '',
-      gender: m.gender === 'Male' ? 'Homme' : m.gender === 'Female' ? 'Femme' : undefined
+      gender: m.gender,
     };
   },
 
@@ -59,7 +59,7 @@ export const supabaseService = {
         medical_notes: member.medicalNotes,
         emergency_info: member.emergencyInfo,
         jeton_id: member.jetonId,
-        gender: member.gender === 'Homme' ? 'Male' : member.gender === 'Femme' ? 'Female' : null
+        gender: member.gender
       }])
       .select()
       .single();
@@ -85,7 +85,7 @@ export const supabaseService = {
     if (member.emergencyInfo !== undefined) updateData.emergency_info = member.emergencyInfo;
     if (member.jetonId !== undefined) updateData.jeton_id = member.jetonId;
     if (member.gender !== undefined) {
-      updateData.gender = member.gender === 'Homme' ? 'Male' : member.gender === 'Femme' ? 'Female' : null;
+      updateData.gender = member.gender;
     }
 
     const { error } = await supabase

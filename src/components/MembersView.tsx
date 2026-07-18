@@ -219,7 +219,7 @@ export default function MembersView({
       {/* Top action bar */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-display font-bold text-bento-blue">Répertoire des Adhérents</h2>
+          <h2 className="text-2xl font-display font-bold text-bento-blue">{t('members_module_title')}</h2>
           <p className="text-xs text-slate-500">Gérez, filtrez et exportez les dossiers sportifs de vos adhérents.</p>
         </div>
 
@@ -442,7 +442,7 @@ export default function MembersView({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-100">
-                  <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Adhérent</th>
+                  <th className="p-4 text-xs font-semibold text-slate-500 uppercase">{t('member')}</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Téléphone</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Tarif Mensuel</th>
                   <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Statut</th>
@@ -552,7 +552,7 @@ export default function MembersView({
                     </span>
                     <div>
                       <h3 className="text-base font-display font-bold text-slate-800" id="slide-over-title">
-                        Dossier Adhérent complet
+                        {t('full_member_file')}
                       </h3>
                       <p className="text-xs text-slate-500">N° d'identification : {selectedMember.membershipNumber}</p>
                     </div>

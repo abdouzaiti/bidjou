@@ -69,23 +69,33 @@ export default function DashboardView({
   const activeMembers = members.filter(m => m.status === 'Active');
   const activeMembersCount = activeMembers.length;
 
-  const todayStr = '2026-07-07'; // Match system clock of dataset
+  // Get today's date in YYYY-MM-DD format
+  const getTodayISO = () => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  };
+  const todayStr = getTodayISO();
+  
   const todayAttendance = attendance.filter(a => a.date === todayStr);
   const presentTodayCount = todayAttendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
   const absentTodayCount = Math.max(0, activeMembersCount - presentTodayCount);
 
-  // Income calculations
+  // Income calculations for current month
+  const currentMonth = new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(new Date());
+  const currentMonthCap = currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1);
+  const currentYear = new Date().getFullYear();
+
   const monthlyIncome = payments
-    .filter(p => p.month === 'Juillet' && p.year === 2026)
+    .filter(p => p.month?.toLowerCase() === currentMonth.toLowerCase() && p.year === currentYear)
     .reduce((sum, p) => sum + p.amount, 0);
 
   const monthlyExpenses = expenses
-    .filter(e => e.date.startsWith('2026-07'))
+    .filter(e => e.date.startsWith(`${currentYear}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`))
     .reduce((sum, e) => sum + e.amount, 0);
 
-  // Pending payments (Active members who have NOT paid for Juillet 2026)
+  // Pending payments (Active members who have NOT paid for current month)
   const paidMemberIdsThisMonth = new Set(
-    payments.filter(p => p.month === 'Juillet' && p.year === 2026).map(p => p.memberId)
+    payments.filter(p => p.month?.toLowerCase() === currentMonth.toLowerCase() && p.year === currentYear).map(p => p.memberId)
   );
   const pendingMembers = activeMembers.filter(m => !paidMemberIdsThisMonth.has(m.id));
   const pendingPaymentsCount = pendingMembers.length;
@@ -93,19 +103,45 @@ export default function DashboardView({
 
   const activeSessionsCount = sessions.length;
 
-  // Custom Chart Data - Monthly Revenue & Expenses
-  // Let's create an elegant data representation for May, June, July 2026
-  const chartData = [
-    { month: 'Mai', income: 15000, expenses: 22000, members: 4 },
-    { month: 'Juin', income: 19500, expenses: 75000, members: 6 },
-    { month: 'Juillet', income: monthlyIncome, expenses: monthlyExpenses, members: totalMembersCount }
-  ];
+  // Dynamic Chart Data for the last 3 months
+  const getLastThreeMonthsData = () => {
+    const data = [];
+    const now = new Date();
+    
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(d);
+      const monthCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      const year = d.getFullYear();
+      const monthNum = d.getMonth() + 1;
+      const monthISO = `${year}-${monthNum.toString().padStart(2, '0')}`;
+
+      const income = payments
+        .filter(p => p.month?.toLowerCase() === monthName.toLowerCase() && p.year === year)
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const expense = expenses
+        .filter(e => e.date.startsWith(monthISO))
+        .reduce((sum, e) => sum + e.amount, 0);
+
+      data.push({
+        month: monthCap,
+        income: Number(income) || 0,
+        expenses: Number(expense) || 0,
+        members: totalMembersCount
+      });
+    }
+    return data;
+  };
+
+  const chartData = getLastThreeMonthsData();
 
   // SVG Chart Dimensions & Computations
   const chartWidth = 500;
   const chartHeight = 180;
   const padding = 25;
-  const maxVal = Math.max(...chartData.map(d => Math.max(d.income, d.expenses))) * 1.15 || 100000;
+  const rawMax = Math.max(...chartData.map(d => Math.max(d.income, d.expenses)));
+  const maxVal = (rawMax > 0 ? rawMax : 100000) * 1.15;
 
   const getX = (index: number) => padding + (index * (chartWidth - padding * 2)) / (chartData.length - 1);
   const getY = (val: number) => chartHeight - padding - (val * (chartHeight - padding * 2)) / maxVal;
@@ -122,10 +158,10 @@ export default function DashboardView({
         
         <div className="space-y-1 relative z-10">
           <h2 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-white">
-            Les Bijoux d'Oran Manager
+            {t('app_manager_title')}
           </h2>
           <p className="text-slate-300 text-sm max-w-xl font-medium">
-            Bienvenue dans votre centre de commande premium. Suivez l'évolution des athlètes, contrôlez les finances et enregistrez le pointage de vos membres en toute simplicité.
+            {t('welcome_message')}
           </p>
         </div>
 
@@ -176,8 +212,8 @@ export default function DashboardView({
           <div className="relative z-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
-                <h3 className="font-display font-bold text-white text-lg">Aperçu Financier</h3>
-                <p className="text-xs text-white/50 font-medium">Comparaison mensuelle des revenus encaissés et des dépenses opérationnelles</p>
+                <h3 className="font-display font-bold text-white text-lg">{t('financial_overview')}</h3>
+                <p className="text-xs text-white/50 font-medium">{t('financial_overview_description')}</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-semibold bg-white/5 px-3 py-1.5 rounded-xl border border-white/15">
                 <div className="flex items-center gap-1.5">
@@ -298,7 +334,7 @@ export default function DashboardView({
               </div>
               <div className="border-r border-white/10" />
               <div>
-                <span className="text-xs text-white/40 font-medium block">Bilan de Juillet</span>
+                <span className="text-xs text-white/40 font-medium block">Bilan {currentMonthCap}</span>
                 <span className="text-base font-bold text-bento-gold font-display">
                   {(monthlyIncome - monthlyExpenses).toLocaleString()} {currency}
                 </span>
@@ -381,17 +417,16 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Footer Grid: Recent Activity & Outstanding Balance list */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Activity Logs Timeline */}
-        <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+      {/* Operations Grid: Recent Activity */}
+      <div className="grid grid-cols-1 gap-8">
+        {/* Recent Activity Logs */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-6">
               <div>
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Audit Trail</span>
                 <h3 className="font-display font-bold text-bento-blue text-lg">{t('recent_activity')}</h3>
-                <p className="text-xs text-gray-400">Flux d'audit et modifications en temps réel</p>
+                <p className="text-xs text-gray-400">Flux d'audit en temps réel</p>
               </div>
               <span className="text-[10px] font-bold uppercase tracking-widest font-mono bg-green-50 border border-green-100 px-2.5 py-1 rounded-lg text-green-600 flex items-center gap-1.5 shrink-0">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
@@ -400,7 +435,7 @@ export default function DashboardView({
             </div>
 
             <div className="space-y-4 max-h-[260px] overflow-y-auto pr-1">
-              {logs.map((log) => (
+              {logs.length > 0 ? logs.map((log) => (
                 <div key={log.id} className="flex gap-4 items-start p-3 hover:bg-gray-50/50 rounded-2xl border border-transparent hover:border-gray-100 transition-colors">
                   <div className={`p-2.5 rounded-xl text-xs font-bold shrink-0 ${
                     log.userRole === 'Admin' ? 'bg-bento-blue/5 text-bento-blue' :
@@ -417,13 +452,20 @@ export default function DashboardView({
                     <p className="text-[11px] text-gray-400 mt-0.5 block truncate">{log.details}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-12 text-slate-400 text-sm italic font-medium">
+                  Aucun log d'activité récent
+                </div>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Footer Grid: Presence & Outstanding Balances */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Circular Presence Progress Widget */}
-        <div className="lg:col-span-3 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between items-center min-h-[300px]">
+        <div className="lg:col-span-6 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between items-center min-h-[300px]">
           <div className="w-full">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Taux de présence</span>
             <h3 className="font-display font-bold text-bento-blue text-sm">Aujourd'hui</h3>
@@ -474,7 +516,7 @@ export default function DashboardView({
         </div>
 
         {/* Outstanding Balances List */}
-        <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[300px]">
+        <div className="lg:col-span-6 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[300px]">
           <div>
             <div className="flex justify-between items-center mb-4">
               <div>
